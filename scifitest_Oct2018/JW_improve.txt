@@ -1,0 +1,67 @@
+/*
+   SciFi detector test with FADC-250 at EEL122, JLab.
+   Data were taked at eel122@hapc4.jlab.org.
+   
+   I have checked that the following codes worked 
+   in ifarm1401.jlab.org. 
+   
+   John Williamson, October 13th, 2018
+*/
+
+
+--------------------------------------------------------------------
+Sourcing root:
+	 source_scifi
+
+	 or
+
+	 source ../../cshrc
+	 source $ROOTSYS/setroot_CUE
+
+
+Firstly follow instructions in README file to replay data and produce ROOT files which the following scripts read
+
+------------------------------------------------------------------
+
+Script for a specific run and channel that produces histograms of the integrals of the signals for all events. Fits this with Gaussian and prints parameters. Draws histograms with and without Gaussian fitting. Also draw distribution of peak time of signal with and without cut on amplitude
+
+
+	root -l
+	root[0]	.x single_ch_amp.cc(#run,#channum)
+	root[1] .q
+
+
+---------------------------------------------------------------------
+
+produces histograms of all channel pedestals
+
+
+	 all_channel_ped.cc  
+
+	 improve: - desciption in README file
+	 	  - could change y-axis on RMS plot: could try and define plot such that it knows largest RMS value of all channels and defines this way. Would need further loop to fill histogram
+
+
+
+-------------------------------------------------------------------
+
+Pulse shape check:
+
+Single channel: Displays event-by-event the pulse shapes (time (ns) vs amplitude). Only shows events with integral above certain threshhold.
+vents have ped subtracted.
+
+       $ root -l
+       root[0] .x pshape_singlech.cc(#run, #ch, #firstevent, # minimum_integral)
+
+
+all channel: Displays event-by-event the pulse shapes (time (ns) vs amplitude).
+
+    $ root -l
+    root[0] .x pshape_allch.cc (#run, #ch)
+
+
+------------------------------------------------------------------------
+Produces histograms for all channels of peak times of events and 2D histograms of time versus integrated amplitude for all events (for each channel). It then prints these an a large number of png files	    
+
+	 $ root - l
+	 root[0] .x JW_showcharge_time(#run)

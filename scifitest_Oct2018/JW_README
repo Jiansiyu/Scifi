@@ -1,0 +1,89 @@
+/*
+   SciFi detector test with FADC-250 at EEL122, JLab.
+   Data were taked at eel122@hapc4.jlab.org.
+   
+   I have checked that the following codes worked 
+   in ifarm1401.jlab.org. 
+   
+   John Williamson, October 13th, 2018
+*/
+
+
+--------------------------------------------------------------------
+Sourcing root:
+	 source_scifi
+
+	 or
+
+	 source ../../cshrc
+	 source $ROOTSYS/setroot_CUE
+
+
+Firstly follow instructions in README file to replay data and produce ROOT files which the following scripts read
+
+------------------------------------------------------------------
+
+Single_channel_analysis:
+
+Script for a specific run and channel that produces histograms of the integrals of the signals for all events. Fits this with Gaussian and prints parameters. Draws histograms with and without Gaussian fitting. Also draw distribution of peak time of signal with and without cut on amplitude
+
+
+	root -l
+	root[0]	.x single_ch_amp.cc(#run,#channum)
+	root[1] .q
+
+
+---------------------------------------------------------------------
+
+All channel pedestals (for a specific run):
+
+Finds pedestals by fitting Gaussian around rough region and refitting with those parameters from first fit, pedestals saved in ped_integrals. Option to compare one run's pedestals to anothers.
+
+
+	root -l
+	root[0]	.x all_channel_ped.cc(#run, pflag, #ref_run)
+	root[1] .q
+
+
+
+
+-------------------------------------------------------------------
+
+Event-by-event Pulse shape checks:
+
+Single channel: Displays event-by-event the pulse shapes (time (ns) vs amplitude). Only shows events with integral above certain threshhold.
+vents have ped subtracted.
+
+       $ root -l
+       root[0] .x pshape_singlech.cc(#run, #ch, #firstevent, # minimum_integral)
+
+
+all channel: Displays event-by-event the pulse shapes (time (ns) vs amplitude).
+
+    $ root -l
+    root[0] .x pshape_allch.cc (#run, #ch)
+
+
+------------------------------------------------------------------------
+
+All-Channel Analysis
+
+
+Produces histograms for all channels of peak times of events and 2D histograms of time versus integrated amplitude for all events (for each channel). It then prints these an a large number of png files	    
+
+	 $ root - l
+	 root[0] .x JW_showcharge_time(#run)
+	 	 
+
+------------------------------------------------------------------------
+
+Single channel pedestal and SPE:
+
+Goes through a set of runs (defined by input parameters), and for a specific channel plots the pedestals and their changes over a set of runs.
+
+
+    $ root -l
+    root[0] .x ped_PE_comparison.cc(#run_f, #run_l, #channum)
+
+
+--------------------------------------------------------------------------

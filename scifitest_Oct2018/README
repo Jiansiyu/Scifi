@@ -1,0 +1,72 @@
+/*
+   SciFi detector test with FADC-250 at EEL122, JLab.
+   Data were taked at adaq@wm122.jlab.org.
+   [ adaq@hacp4 (DAQ) <--> adaq@sbsvme2 (VME) ]
+   
+   I have checked that the following codes worked 
+   in ifarm1401.jlab.org. 
+   
+   Toshiyuki Gogami, November 30, 2017
+*/
+
+---------------------------------------------------------------------
+1) Create a ROOT file from a raw data 
+$ ./analyzer "replay_hcal_test.C(#run)"
+
+
+---------------------------------------------------------------------
+2) Obtain pedestal parameters
+$ root -l
+root[0] .x ped.cc (#run)
+root[1] .q
+
+stores in (pedfname,"./ped/pedestal_%d.dat",run)
+
+OR
+
+root[0] .x all_channel_ped.cc (#run. #ref_run)
+
+- to produce pedestals based on integral of whole range
+- also compares pedestals to ref_run, and plots RMS of each pedestal
+
+
+
+---------------------------------------------------------------------
+3) Convert a ROOT file to new ROOT file for further analysis process
+$ root -l
+root[0] .x conv1.cc(#run, flag) for pedestals for each bin
+
+OR
+
+root[0] .x conv1.cc(#run, flag) to run with pedestals based on integral of whole signal
+
+If flag==0, all leaves will be saved (rootfiles2/acsis_#run.root).
+If not, only integrated charge will be saved (rootfiles2/charge_acsis_#run.root). 
+
+
+---------------------------------------------------------------------
+4) Pulse shape check
+$ root -l
+root[0] .x pshape_accum.cc (#run, #ch)
+
+
+---------------------------------------------------------------------
+5) Show histograms of integrated charge information 
+$ root -l
+root[0] .x showcharge.cc (#run)
+
+takes in   ("./rootfiles2/acsis_%d.root",run) to get ped subtracted pulse integrals
+
+stores results in ("./singlePE/intcHist_acsis_%d.root",run)
+
+
+--------------------------------------------------------------------
+
+6) Get location of first PE peak for each channel (and stores ped location, RMS, errors etc))
+
+$ root -l
+root[0] .x ./singlePE/getSPE.cc (#run)
+
+takes in ("./singlePE/intcHist_acsis_%d.root",run)
+
+stores results in ("./singlePE./spe_%d.dat",run)
