@@ -67,6 +67,7 @@ Int_t TriFadcCherenkov::ReadDatabase( const TDatime& date )
 
   // Read fOrigin and fSize (required!)
   Int_t err = ReadGeometry( file, date, true );
+  // JW: defined in THaDetectorBase: reads in size, angle and position from database
   if( err ) {
     fclose(file);
     return err;
@@ -329,9 +330,7 @@ Int_t TriFadcCherenkov::Decode( const THaEvData& evdata )
       Int_t fpeak=0;
       Float_t tempPed = fPed[k];             // Dont overwrite DB pedestal value!!! -- REM -- 2018-08-21
       
-      // JW:: evdata must somehow be a member of Fadc250Module class for the following GetData calls to work (could be input to function, input defined in analyzer call to decode as a cast to THaEvData from gHaDecoder)
-      // JW: cannot seem to find GetData defined in any class for 5 inputs
-      // JW : above may be wrong, fadc250Module class doesn't inherit from evdata (couldn't be cast to apointer of its type I think) 
+      // JW:: evdata has a function GetData that accepts the 5 parameters below, it then calls the GetData function of fadc250Module which has case for the different first parameter
 
       if(adc){
 	 data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
@@ -348,12 +347,18 @@ Int_t TriFadcCherenkov::Decode( const THaEvData& evdata )
                foverflow[k] = fFADC->GetOverflowBit(chan,0);
                funderflow[k] = fFADC->GetUnderflowBit(chan,0);
                fpedq[k] = fFADC->GetPedestalQuality(chan,0);
+	       
+	       
+	       //JW: unsure of what these lines do/ how fFADC knows about pedestals etc
+	       // seems like info should be from database?
+
+
         //       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
           }
           if(fpedq[k]==0)
           {
             if(fTFlag == 1)
-            {
+            {                                        
               tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
             }
             else
@@ -375,7 +380,7 @@ Int_t TriFadcCherenkov::Decode( const THaEvData& evdata )
         fT_FADC_c[k]=fT_FADC[k]*0.0625;
 	fA_p[k] = data - tempPed;
 	fA_c[k] = fA_p[k] * fGain[k];
-	// only add channels with signals to the sums
+	// only addc ehannels with signals to the sums
 	if( fA_p[k] > 0.0 )
 	  fASUM_p += fA_p[k];
 	if( fA_c[k] > 0.0 )
