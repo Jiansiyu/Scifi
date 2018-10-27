@@ -1,8 +1,8 @@
 ///////////////////////////////////////////////////////////////////////////////
 //                                                                           //
-// TriFadcCherenkov                                                              //
+// Scifi                                                                     //
 //                                                                           //
-// Class for a generic Cherenkov consisting of one or more phototubes.       //
+// Class for Scifi detector read out by 4 fadc250 modules wiht 16 channels   //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -26,7 +26,7 @@ using namespace Decoder;
 //_____________________________________________________________________________
 SciFi::SciFi( const char* name, const char* description,
 			    THaApparatus* apparatus )
-  : THaPidDetector(name,description,apparatus), fOff(0), fPed(0), fGain(0),
+  : THaNonTrackingDetector(name,description,apparatus), fOff(0), fPed(0), fGain(0),
     fNThit(0), fT(0), fT_c(0), fNAhit(0), fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
     foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
@@ -36,7 +36,7 @@ SciFi::SciFi( const char* name, const char* description,
 
 //_____________________________________________________________________________
 SciFi::SciFi()
-  : THaPidDetector(), fOff(0), fPed(0), fGain(0), fT(0), fT_c(0),
+  : THaNonTrackingDetector(), fOff(0), fPed(0), fGain(0), fT(0), fT_c(0),
     fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Default constructor (for ROOT I/O)
@@ -93,17 +93,21 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   }
  
   UInt_t flags = THaDetMap::kFillLogicalChannel | THaDetMap::kFillModel;
+  // potential change depending on how database is structured 
+  // what is difference between channel and logical channel number
 
   if( !err && FillDetMap(detmap, flags, here) <= 0 ) {
     err = kInitError;  // Error already printed by FillDetMap
   }
 
 
-  if( !err && (nelem = fDetMap->GetTotNumChan()) != 2*fNelem ) {
-    Error( Here(here), "Number of detector map channels (%d) "
-	   "inconsistent with 2*number of PMTs (%d)", nelem, 2*fNelem );
-    err = kInitError;
-  }
+  // Change:: Don't think this is needed
+
+  // if( !err && (nelem = fDetMap->GetTotNumChan()) != 2*fNelem ) {
+  //   Error( Here(here), "Number of detector map channels (%d) "
+  // 	   "inconsistent with 2*number of PMTs (%d)", nelem, 2*fNelem );
+  //   err = kInitError;
+  // }
 
   if( err ) {
     fclose(file);
@@ -117,13 +121,13 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   UInt_t nval = fNelem;
   if( !fIsInit ) {
     // Calibration data
-    fOff  = new Float_t[ nval ];
+    // fOff  = new Float_t[ nval ];
     fPed  = new Float_t[ nval ];
     fGain = new Float_t[ nval ];
 
     // Per-event data
-    fT    = new Float_t[ nval ];
-    fT_c  = new Float_t[ nval ];
+    // fT    = new Float_t[ nval ];
+    // fT_c  = new Float_t[ nval ];
     fA    = new Float_t[ nval ];
     fA_p  = new Float_t[ nval ];
     fA_c  = new Float_t[ nval ];
@@ -158,7 +162,7 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   for( UInt_t i=0; i<nval; ++i ) { fGain[i] = 1.0; }
 
   DBRequest calib_request[] = {
-    { "tdc.offsets",      fOff,         kFloat, nval, 1 },
+    // { "tdc.offsets",      fOff,         kFloat, nval, 1 },
     { "adc.pedestals",    fPed,         kFloat, nval, 1 },
     { "adc.gains",        fGain,        kFloat, nval, 1 },
     //    { "tdc.res",          &fTdc2T,      kDouble },
@@ -186,10 +190,10 @@ Int_t SciFi::DefineVariables( EMode mode )
   fIsSetup = ( mode == kDefine );
 
   RVarDef vars[] = {
-    { "nthit",  "Number of Left paddles TDC times",  "fNThit" },
-    { "nahit",  "Number of Right paddles TDC times", "fNAhit" },
-    { "t",      "TDC values",                        "fT" },
-    { "t_c",    "Corrected TDC values",              "fT_c" },
+    // { "nthit",  "Number of Left paddles TDC times",  "fNThit" },
+    // { "nahit",  "Number of Right paddles TDC times", "fNAhit" },
+    // { "t",      "TDC values",                        "fT" },
+    // { "t_c",    "Corrected TDC values",              "fT_c" },
     { "a",      "ADC values",                        "fA" },
     { "a_p",    "Ped-subtracted ADC values ",        "fA_p" },
     { "a_c",    "Corrected ADC values",              "fA_c" },
@@ -230,12 +234,12 @@ void SciFi::DeleteArrays()
   delete [] fA_c;    fA_c    = NULL;
   delete [] fA_p;    fA_p    = NULL;
   delete [] fA;      fA      = NULL;
-  delete [] fT_c;    fT_c    = NULL;
-  delete [] fT;      fT      = NULL;
+  // delete [] fT_c;    fT_c    = NULL;
+  // delete [] fT;      fT      = NULL;
 
   delete [] fGain;   fGain   = NULL;
   delete [] fPed;    fPed    = NULL;
-  delete [] fOff;    fOff    = NULL;
+  // delete [] fOff;    fOff    = NULL;
 
   delete [] fPeak;      fPeak      = NULL;
   delete [] fT_FADC;    fT_FADC    = NULL;
@@ -250,11 +254,12 @@ void SciFi::DeleteArrays()
 void SciFi::Clear( Option_t* opt )
 {
   // Clear event data
-  THaPidDetector::Clear(opt);
+  THaNonTrackingDetector::Clear(opt);
   fNThit = fNAhit = 0;
   assert(fIsInit);
   for( Int_t i=0; i<fNelem; ++i ) {
-    fT[i] = fT_c[i] = fA[i] = fA_p[i] = fA_c[i] = 0.0;
+    // fT[i] = fT_c[i] = 0.0;
+    fA[i] = fA_p[i] = fA_c[i] = 0.0;
     fPeak[i]=0.0;
     fT_FADC[i]=0.0;
     fT_FADC_c[i]=0.0;
@@ -277,12 +282,19 @@ Int_t SciFi::Decode( const THaEvData& evdata )
   // This implementation assumes that the first half of the detector map
   // entries corresponds to ADCs, and the second half, to TDCs.
 
-  // Loop over all modules defined for Cherenkov detector
+  // this next loop should go through 4 entries (4 fadc modules with 16 channels apeice)
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
     THaDetMap::Module* d = fDetMap->GetModule( i );
-    bool adc = (d->model ? fDetMap->IsADC(d) : i < fDetMap->GetSize()/2 );
+    bool adc = fDetMap->IsADC(d);
 
-    if(adc) fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
+    if (!adc){
+     Error( Here(here), "Module %d in database is not of type fadc250 "
+	   "Fix database", i);
+     err = kDecodErr; // defined somwhere in ThaAnalyzer
+    }
+    
+    // change: removed if condition for fadc (should be only thing present)
+    fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
 
     // Loop over all channels that have a hit.
     for( Int_t j = 0; j < evdata.GetNumChan( d->crate, d->slot ); j++) {
@@ -300,80 +312,80 @@ Int_t SciFi::Decode( const THaEvData& evdata )
       }
 #endif
 
-      // Get the data. Aero mirrors are assumed to have only single hit (hit=0)
+      // Get the data. fADCs are assumed to have only single hit (hit=0)
       Int_t data;
       Int_t ftime=0;
       Int_t fpeak=0;
       Float_t tempPed = fPed[k];             // Dont overwrite DB pedestal value!!! -- REM -- 2018-08-21
-      if(adc){
-	 data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
-         ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
-         fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
-      }
-      else{ 
-	     fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
-             data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
-	  }
+      // if(adc){
+      data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
+      ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
+      fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
+      // }
+      // else{ 
+      // 	fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
+      // 	data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
+      // }
 
-      if(adc){
-          if(fFADC!=NULL){
-               foverflow[k] = fFADC->GetOverflowBit(chan,0);
-               funderflow[k] = fFADC->GetUnderflowBit(chan,0);
-               fpedq[k] = fFADC->GetPedestalQuality(chan,0);
-        //       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
-          }
-          if(fpedq[k]==0)
-          {
-            if(fTFlag == 1)
-            {
-              tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
-            }
-            else
-            {
-              tempPed=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
-            }
-          }
-   //       else
+      // if(adc){
+      if(fFADC!=NULL){
+	foverflow[k] = fFADC->GetOverflowBit(chan,0);
+	funderflow[k] = fFADC->GetUnderflowBit(chan,0);
+	fpedq[k] = fFADC->GetPedestalQuality(chan,0);
+	//       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
+      }
+      if(fpedq[k]==0)
+	{
+	  if(fTFlag == 1)
+	    {
+	      tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+	    }
+	  else
+	    {
+	      tempPed=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+	    }
+	}
+	//       else
    //       {
    //         printf("\nWARNING: BAD FADC PEDESTAL\n");
    //       }
-      }
+      // }
       
       // Copy the data to the local variables.
-      if ( adc ) {
-	fA[k]   = data;
-        fPeak[k] = static_cast<Float_t>(fpeak);
-        fT_FADC[k]=static_cast<Float_t>(ftime);
-        fT_FADC_c[k]=fT_FADC[k]*0.0625;
-	fA_p[k] = data - tempPed;
-	fA_c[k] = fA_p[k] * fGain[k];
-	// only add channels with signals to the sums
-	if( fA_p[k] > 0.0 )
-	  fASUM_p += fA_p[k];
-	if( fA_c[k] > 0.0 )
-	  fASUM_c += fA_c[k];
-	fNAhit++;
-      } else {
-	fT[k]   = data;
-	fT_c[k] = data - fOff[k];
-	fNThit++;
-      }
+      // if ( adc ) {
+      fA[k]   = data;
+      fPeak[k] = static_cast<Float_t>(fpeak);
+      fT_FADC[k]=static_cast<Float_t>(ftime);
+      fT_FADC_c[k]=fT_FADC[k]*0.0625;
+      fA_p[k] = data - tempPed;
+      fA_c[k] = fA_p[k] * fGain[k];
+      // only add channels with signals to the sums
+      if( fA_p[k] > 0.0 )
+	fASUM_p += fA_p[k];
+      if( fA_c[k] > 0.0 )
+	fASUM_c += fA_c[k];
+      fNAhit++;
+      // } else {
+      // 	// fT[k]   = data;
+      // 	// fT_c[k] = data - fOff[k];
+      // 	fNThit++;
+      // }
     }
   }
 
   if ( fDebug > 3 ) {
-    printf("\nCherenkov %s:\n",GetPrefix());
-    int ncol=3;
+    printf("\nSciFi %s:\n",GetPrefix());
+    int ncol=2;
     for (int i=0; i<ncol; i++) {
-      printf("  Mirror TDC   ADC  ADC_p  ");
+      printf("  ADC  ADC_p  ");
     }
     printf("\n");
-
+ 
     for (int i=0; i<(fNelem+ncol-1)/ncol; i++ ) {
       for (int c=0; c<ncol; c++) {
 	int ind = c*fNelem/ncol+i;
 	if (ind < fNelem) {
-	  printf("  %3d  %5.0f  %5.0f  %5.0f  ",ind+1,fT[ind],fA[ind],fA_p[ind]);
+	  printf("  %3d  %5.0f  %5.0f  ",ind+1,fA[ind],fA_p[ind]);
 	} else {
 	  //	  printf("\n");
 	  break;
@@ -383,7 +395,8 @@ Int_t SciFi::Decode( const THaEvData& evdata )
     }
   }
 
-  return fNThit;
+  // return fNThit;
+  return fNAhit++;
 }
 
 //_____________________________________________________________________________
