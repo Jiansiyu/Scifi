@@ -1,0 +1,25 @@
+Small notes on how analyzer works:
+
+     
+     To get FadcModule250 loaded in set-up process:
+
+     THaEvData->Init() (called by THaAnalyzer->Init or THaRun)
+     calls THaEvData->init_cmap()
+     calls cratemap->Init() (fMap member of THaEvData)
+     calls THaCratemap::SetModule()
+     calls THaCratemap::SetModelSize()
+     -----> this function recognizes 250 as parameter for fadc250
+     	    gives info about no of channels and amount fo data
+
+
+  
+     Also:
+     
+     THaEvData has crateslot member variable: a vector of THaSlotData
+     int THaEvData::makeidx( ) 
+     	 crateslot[i]->loadModule(fMap);
+     	 loads in module type based on fMap (cratemap)
+	 stores this in fModule member variable
+	 hence THaEvData has access to fadc250 module class
+     makeidx() calles by THaEvData::init_slotdata();
+     init_slotdata() called by THaEvData::Init()
