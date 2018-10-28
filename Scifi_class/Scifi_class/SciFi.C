@@ -6,7 +6,8 @@
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
 
-#include "TriFadcCherenkov.h"
+//#include "TriFadcCherenkov.h"
+#include "SciFi.h"
 #include "THaEvData.h"
 #include "THaDetMap.h"
 #include "VarDef.h"
@@ -26,8 +27,8 @@ using namespace Decoder;
 //_____________________________________________________________________________
 SciFi::SciFi( const char* name, const char* description,
 			    THaApparatus* apparatus )
-  : THaNonTrackingDetector(name,description,apparatus), fOff(0), fPed(0), fGain(0),
-    fNThit(0), fT(0), fT_c(0), fNAhit(0), fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
+  : THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0),
+    fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
     foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Constructor
@@ -36,8 +37,8 @@ SciFi::SciFi( const char* name, const char* description,
 
 //_____________________________________________________________________________
 SciFi::SciFi()
-  : THaNonTrackingDetector(), fOff(0), fPed(0), fGain(0), fT(0), fT_c(0),
-    fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+  : THaNonTrackingDetector(), fPed(0), fGain(0),
+    fA(0), fA_p(0), fA_c(0),fPeak(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Default constructor (for ROOT I/O)
 }
@@ -150,7 +151,7 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   //  fTdc2T = 0.1e-9;      // seconds/channel
 
   // Default TDC offsets (0), ADC pedestals (0) and ADC gains (1)
-  memset( fOff, 0, nval*sizeof(fOff[0]) );
+  //  memset( fOff, 0, nval*sizeof(fOff[0]) );
   memset( fPed, 0, nval*sizeof(fPed[0]) );
 
   fNPED = 1; //number of samples included in FADC pedestal sum
@@ -255,7 +256,7 @@ void SciFi::Clear( Option_t* opt )
 {
   // Clear event data
   THaNonTrackingDetector::Clear(opt);
-  fNThit = fNAhit = 0;
+  // fNThit = fNAhit = 0;
   assert(fIsInit);
   for( Int_t i=0; i<fNelem; ++i ) {
     // fT[i] = fT_c[i] = 0.0;
@@ -287,11 +288,15 @@ Int_t SciFi::Decode( const THaEvData& evdata )
     THaDetMap::Module* d = fDetMap->GetModule( i );
     bool adc = fDetMap->IsADC(d);
 
-    if (!adc){
-     Error( Here(here), "Module %d in database is not of type fadc250 "
-	   "Fix database", i);
-     err = kDecodErr; // defined somwhere in ThaAnalyzer
-    }
+
+    const char* const here = "Decode";
+    
+    // if (!adc){
+    //  Error( Here(here), "Module %d in database is not of type fadc250 "
+    // 	   "Fix database", i);
+    //  Int_t err = kDecodeErr; // defined somwhere in ThaAnalyzer
+    // }
+
     
     // change: removed if condition for fadc (should be only thing present)
     fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
