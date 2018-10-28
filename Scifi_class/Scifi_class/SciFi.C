@@ -5,7 +5,6 @@
 // Class for Scifi detector read out by 4 fadc250 modules wiht 16 channels   //
 //                                                                           //
 ///////////////////////////////////////////////////////////////////////////////
-
 //#include "TriFadcCherenkov.h"
 #include "SciFi.h"
 #include "THaEvData.h"
@@ -25,19 +24,14 @@
 using namespace std;
 using namespace Decoder;
 //_____________________________________________________________________________
-SciFi::SciFi( const char* name, const char* description,
-			    THaApparatus* apparatus )
-  : THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0),
-    fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
-    foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+SciFi::SciFi( const char* name, const char* description, THaApparatus* apparatus ): THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0), fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Constructor
   fFADC=NULL;
 }
 
 //_____________________________________________________________________________
-SciFi::SciFi()
-  : THaNonTrackingDetector(), fPed(0), fGain(0),
+SciFi::SciFi(): THaNonTrackingDetector(), fPed(0), fGain(0),
     fA(0), fA_p(0), fA_c(0),fPeak(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Default constructor (for ROOT I/O)
