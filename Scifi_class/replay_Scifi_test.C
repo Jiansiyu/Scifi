@@ -16,18 +16,18 @@
 
 //#include "SBSGEMStand.h"
 //#include "SBSBigBite.h"
-R__LOAD_LIBRARY(libsbs)
+// R__LOAD_LIBRARY(libsbs)
 #include "Scifi_class/SciFi.h"
 #include "Scifi_class/THaHRS.h" // some kind of arm...
 
-void replay_hcal_test(Int_t runnum = 5049, Int_t lastEvent = 100){
+void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 100){
 
   //  gSystem->Load("libsbs.so");
   THaHRS *RHRS = new THaHRS("R","Right arm RHRS");
 
-  SciFi *SciFi = new SciFi("sf","SciFi detector");
+  SciFi *sf = new SciFi("sf","SciFi detector");
 
-  RHRS->AddDetector(SciFi);
+  RHRS->AddDetector(sf);
 
   //
   //  Steering script for Hall A analyzer demo
