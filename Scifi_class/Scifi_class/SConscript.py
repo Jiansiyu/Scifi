@@ -20,6 +20,6 @@ list = Split("""
 SciFi.C
 """)
 
-sotarget = 'User'
+sotarget = 'SciFi'
 srclib = baseenv.SharedLibrary(target = sotarget, source = list+[rootuserdict],\
                                LIBS = [''], LIBPATH = [''])
