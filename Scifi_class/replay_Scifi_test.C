@@ -17,13 +17,16 @@
 //#include "SBSGEMStand.h"
 //#include "SBSBigBite.h"
 // R__LOAD_LIBRARY(libsbs)
+ R__LOAD_LIBRARY(Scifi_class/libSciFi)
+
+
 #include "Scifi_class/SciFi.h"
 #include "Scifi_class/THaHRS.h" // some kind of arm...
 
 void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 100){
 
   //  gSystem->Load("libsbs.so");
-  gSystem->Load("Scifi_class/libUser.so");
+  gSystem->Load("Scifi_class/libSciFi.so");
   
   THaHRS *RHRS = new THaHRS("R","Right arm RHRS");
 

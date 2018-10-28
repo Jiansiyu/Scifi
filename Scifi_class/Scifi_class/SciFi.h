@@ -17,8 +17,7 @@ class TClonesArray;
 class SciFi : public THaNonTrackingDetector {
 
 public:
-  SciFi( const char* name, const char* description = "",
-	      THaApparatus* a = NULL );
+  SciFi( const char* name, const char* description = "", THaApparatus* a = NULL );
   SciFi(); // for ROOT I/O
   virtual ~SciFi();
 

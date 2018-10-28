@@ -15,7 +15,6 @@
 #include "TClonesArray.h"
 #include "TDatime.h"
 #include "TMath.h"
-
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
@@ -31,8 +30,7 @@ SciFi::SciFi( const char* name, const char* description, THaApparatus* apparatus
 }
 
 //_____________________________________________________________________________
-SciFi::SciFi(): THaNonTrackingDetector(), fPed(0), fGain(0),
-    fA(0), fA_p(0), fA_c(0),fPeak(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+SciFi::SciFi(): THaNonTrackingDetector(), fPed(0), fGain(0), fA(0), fA_p(0), fA_c(0),fPeak(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Default constructor (for ROOT I/O)
 }

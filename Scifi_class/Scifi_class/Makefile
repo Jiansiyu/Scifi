@@ -7,12 +7,11 @@
 # List only the implementation files (*.cxx). For every implementation file
 # there must be a corresponding header file (*.h).
 
-SRC  = UserDetector.cxx UserModule.cxx UserApparatus.cxx \
-       UserScintillator.cxx UserEvtHandler.cxx SkeletonModule.cxx
+SRC = SciFi.cxx
 
 # Name of your package.
 # The shared library that will be built will get the name lib$(PACKAGE).so
-PACKAGE = User
+PACKAGE = SciFi
 
 # Name of the LinkDef file
 LINKDEF = $(PACKAGE)_LinkDef.h
@@ -36,7 +35,7 @@ export WITH_DEBUG = 1
 # the setting of ANALYZER, or specify INCDIRS explicitly.
 
 ifndef ANALYZER
-  $(error $$ANALYZER environment variable not defined)
+^I$(error $$ANALYZER environment variable not defined)
 endif
 
 INCDIRS  = $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana_scaler))
@@ -45,13 +44,13 @@ INCDIRS  = $(wildcard $(addprefix $(ANALYZER)/, include src hana_decode hana_sca
 # Do not change anything  below here unless you know what you are doing
 
 ifeq ($(strip $(INCDIRS)),)
-  $(error No Analyzer header files found. Check $$ANALYZER)
+^I$(error No Analyzer header files found. Check $$ANALYZER)
 endif
 
 MACHINE := $(shell uname -s)
 ARCH    := linux
 ifeq ($(MACHINE),Darwin)
-  ARCH := macosx
+^IARCH := macosx
 endif
 
 ROOTCFLAGS   := $(shell root-config --cflags)
@@ -73,12 +72,12 @@ GLIBS         =
 ifeq ($(ARCH),linux)
 # Linux with egcs (>= RedHat 5.2)
 ifdef DEBUG
-  CXXFLAGS    = -g -O0
-  LDFLAGS     = -g -O0
+^ICXXFLAGS    = -g -O0
+^ILDFLAGS     = -g -O0
 else
-  CXXFLAGS    = -g -O
-  LDFLAGS     = -g -O
-  DEFINES     = -DNDEBUG
+^ICXXFLAGS    = -g -O
+^ILDFLAGS     = -g -O
+^IDEFINES     = -DNDEBUG
 endif
 CXXFLAGS     += -Wall -fPIC
 LD            = g++
@@ -89,13 +88,13 @@ endif
 ifeq ($(ARCH),macosx)
 # Mac OS X with gcc >= 3.x or clang++ >= 5
 ifdef DEBUG
-  CXXFLG     := -g -O0
-  LDFLAGS    := -g -O0
-  DEFINES    :=
+^ICXXFLG     := -g -O0
+^ILDFLAGS    := -g -O0
+^IDEFINES    :=
 else
-  CXXFLG     := -O
-  LDFLAGS    := -O
-  DEFINES    := -DNDEBUG
+^ICXXFLG     := -O
+ILDFLAGS    := -O
+IDEFINES    := -DNDEBUG
 endif
 DEFINES      += -DMACVERS
 CXXFLG       += -Wall -fPIC
