@@ -68,6 +68,7 @@ Int_t TriFadcCherenkov::ReadDatabase( const TDatime& date )
   // Read fOrigin and fSize (required!)
   Int_t err = ReadGeometry( file, date, true );
   // JW: defined in THaDetectorBase: reads in size, angle and position from database
+  // strores them where??
   if( err ) {
     fclose(file);
     return err;
