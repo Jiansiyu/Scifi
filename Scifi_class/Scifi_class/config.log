@@ -1,0 +1,20 @@
+file /home/johnw/Scifi/Scifi_class/Scifi_class/SConstruct,line 48:
+	Configure(confdir = .sconf_temp)
+scons: Configure: Checking whether the C++ compiler works... 
+scons: Configure: ".sconf_temp/conftest_0.cpp" is up to date.
+scons: Configure: The original builder output was:
+  |.sconf_temp/conftest_0.cpp <-
+  |  |
+  |  |int main()
+  |  |{
+  |  |    return 0;
+  |  |}
+  |  |
+  |
+scons: Configure: ".sconf_temp/conftest_0.o" is up to date.
+scons: Configure: The original builder output was:
+  |c++ -o .sconf_temp/conftest_0.o -c -std=c++11 -O -Wall -fPIC -Wextra -Wno-missing-field-initializers -Wno-unused-parameter -m64 -pthread -rdynamic -DNDEBUG -DWITH_DEBUG -DLINUXVERS -I. -I/home/johnw/analyzer-1.6.3 -I/home/johnw/analyzer-1.6.3/src -I/home/johnw/analyzer-1.6.3/hana_decode -I/home/johnw/root/include .sconf_temp/conftest_0.cpp
+  |
+scons: Configure: (cached) yes
+
+
