@@ -62,7 +62,7 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   // Read configuration parameters
   DBRequest config_request[] = {
     { "detmap",  &detmap,  kIntV },
-    { "npmt",    &nelem,   kInt },
+    { "nch",    &nelem,   kInt },
     { "angle",   &angle,   kDouble, 0, 1 },
     { 0 }
   };
@@ -85,7 +85,10 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
       fNelem = nelem;
   }
  
-  UInt_t flags = THaDetMap::kFillLogicalChannel | THaDetMap::kFillModel;
+  //  UInt_t flags = THaDetMap::kFillLogicalChannel | THaDetMap::kFillModel;
+
+  UInt_t flags = THaDetMap::kFillModel;
+
   // potential change depending on how database is structured 
   // what is difference between channel and logical channel number
 
@@ -156,8 +159,8 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
 
   DBRequest calib_request[] = {
     // { "tdc.offsets",      fOff,         kFloat, nval, 1 },
-    { "adc.pedestals",    fPed,         kFloat, nval, 1 },
-    { "adc.gains",        fGain,        kFloat, nval, 1 },
+    { "pedestals",    fPed,         kFloat, nval, 1 },
+    { "gains",        fGain,        kFloat, nval, 1 },
     //    { "tdc.res",          &fTdc2T,      kDouble },
     { "NPED",             &fNPED,        kInt},
     { "NSA",              &fNSA,         kInt},
@@ -277,6 +280,8 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
   // this next loop should go through 4 entries (4 fadc modules with 16 channels apeice)
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
+
+    cout << " detmap size is " << fDetMap->GetSize() << endl;
     THaDetMap::Module* d = fDetMap->GetModule( i );
     bool adc = fDetMap->IsADC(d);
 
@@ -300,11 +305,12 @@ Int_t SciFi::Decode( const THaEvData& evdata )
       if( chan < d->lo || chan > d->hi ) continue;     // Not one of my channels
 
       // Get the detector channel number, starting at 0
-      Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo) - 1;
+      // removed -1 at end, not sure of purpose
+      Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo);
 
 #ifdef WITH_DEBUG
       if( k<0 || k>= fNelem ) {
-        Warning( Here("Decode()"), "Illegal detector channel: %d", k );
+        Warning( Here("Decode()"), "Illegal detector channel: %d, chan = %d, hit no = %d,  i = %d", k, chan, j, i );
         continue;
       }
 #endif
