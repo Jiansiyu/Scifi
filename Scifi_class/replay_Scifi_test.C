@@ -23,12 +23,16 @@
 #include "Scifi_class/SciFi.h"
 #include "Scifi_class/THaHRS.h" // some kind of arm...
 
-void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 100){
+void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 10){
 
   //  gSystem->Load("libsbs.so");
   gSystem->Load("Scifi_class/libSciFi.so");
   
   THaHRS *RHRS = new THaHRS("R","Right arm RHRS");
+
+  // so RHRS doesn't try and define cherenkov, s1, s2 etc
+  RHRS->AutoStandardDetectors(kFALSE);
+  
 
   SciFi *sf = new SciFi("sf","SciFi detector");
 
