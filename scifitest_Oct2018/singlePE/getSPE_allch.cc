@@ -33,12 +33,14 @@ double fitf(double* x, double* par){
 }
 
 
-void getSPE_allch(int run  = 5049){
+void getSPE_allch(int run  = 5049, Int_t channel = -1){
 
 
   // ============================== //
   // ======= Open ROOT file ======= //
   // ============================== //
+  Int_t n = 400; // fac window
+
 
   char inputfilename[500];
   sprintf(inputfilename,"./singlePE/intcHist_acsis_%d.root",run);
@@ -97,18 +99,19 @@ void getSPE_allch(int run  = 5049){
     // ===== Fit to pedestal ======== //
     // ============================== //
     TF1* func1 = new TF1("func1",fitf,
-			 -500.0, 1000.0, 
+			 -1000.0, 2000.0, 
 			 3);
-    func1->SetParameter(0, 10000.0);
+    func1->SetParameter(0, 1000.0);
     func1->SetParameter(1, 0.0);
-    func1->SetParameter(2, 25.0);
-    func1->SetParLimits(1, -200.0, 200.0);
+    func1->SetParameter(2, 55.0);
+    func1->SetParLimits(2, -300.0, 300.0);
+    func1->SetParLimits(1, -300.0, 300.0);
     
     //func1->SetParameter(3, 800.0);
     //func1->SetParameter(4, 350.0);
     //func1->SetParameter(5, 50.0);
     
-    h1->Fit("func1","N","",-500.0, 500.0); // N here means do not draw
+    h1->Fit("func1","N","",-1000.0, 1000.0); // N here means do not draw
     func1->SetNpx(1000);
     //func1->Draw("same");
     pedmean[ch]    = func1->GetParameter(1);
@@ -121,28 +124,48 @@ void getSPE_allch(int run  = 5049){
     //cout << pedsigma << " " << pedmax << endl;
   
     TF1* func2 = new TF1("func2",fitf3,
-		       -500.0, 1600.0, 
+		       -1000.0, 300.0, 
 		       9); 
     func2->SetNpx(1000);
-    func2->SetParameter(0, 100.0);
-    func2->SetParameter(1, 300.0); func2->SetParLimits(1, 200.0, 700.0);
+    func2->SetParameter(0, 50.0); func2->SetParLimits(0, 0.00, 400.0);
+    func2->SetParameter(1, 500.0); func2->SetParLimits(1, 200.0, 700.0);
     //func2->SetParameter(2, 80.0); func2->SetParLimits(2, 75.0, 300.0);
-    func2->SetParameter(2, 80.0); func2->SetParLimits(2, 75.0, 300.0);
+    func2->SetParameter(2, 180.0); func2->SetParLimits(2, 75.0, 300.0);
     func2->SetParameter(3, 50.0);
     func2->SetParameter(4, -0.05); func2->SetParLimits(4,-0.08,0.0);
     func2->FixParameter(5, func1->GetParameter(0));
-    func2->FixParameter(6, func1->GetParameter(1));
+    func2->SetParameter(6, func1->GetParameter(1));
     func2->FixParameter(7, func1->GetParameter(2));
     func2->FixParameter(8, pedmax);
+
+    pedsigma[ch]    = func2->GetParameter(6); 
+    pedsigma_er[ch] = func2->GetParError(6); 
+
     
-    h1->Fit("func2","NB","",-500.0, 1200.0);
+    h1->Fit("func2","","",-1000.0, 3000.0); // took out NB in second param
     //    func2->Draw("same");
 
     spemean[ch] = func2->GetParameter(1);
     spemean_er[ch] = func2->GetParError(1);
-    
 
- 
+    TCanvas* c1 =  new TCanvas("c1","c1");
+
+    if (ch == channel){
+
+      c1->cd(0);
+      h1->Draw();
+      func2->Draw("same");
+      c1->WaitPrimitive();
+    }
+      
+
+
+
+    
+    // TCanvas* c1 = new TCanvas("c1","c1");
+    // h1->Draw();
+    // func2->Draw("same");
+
     // cout << endl;
     // cout << " " 
     // 	 << run << " " 

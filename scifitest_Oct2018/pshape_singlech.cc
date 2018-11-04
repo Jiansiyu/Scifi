@@ -74,7 +74,7 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   
   Int_t nch = 64;
   //const Int_t n   = 74;
-  Int_t n = 24;
+  const Int_t n = 400;
   //const Int_t n   = 400;
   
        
@@ -114,7 +114,7 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   // ========================================== //
   // ======= Pedestal position evaluation ===== //
   // ========================================== //
-  Int_t nite = 100; // the number of events accumulated
+  Int_t nite = 10; // the number of events accumulated
   
   char htitle[500]; 
   char hname[500];
@@ -126,8 +126,10 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   char fname[500];
   sprintf(fname,"func1_%d",channum);
   func1 = new TF1(fname,"[0]",0.0,xmax);
-  func1->SetParameter(0, 250.0);
+  func1->SetParameter(0, 200.0);
   
+
+  std::cout << " about to get peds" << std::endl;
   //TCanvas* c0 = new TCanvas("c0","c0");
   //c0->Divide(8,4);
   //c0->cd();
@@ -159,8 +161,8 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
 
   //c2->Divide(6,6);
   char pname[500];
-  Double_t ymax = 1000.;
-  Double_t ymin = -200.;
+  Double_t ymax = 100.;
+  Double_t ymin = -20.;
   Double_t offset;// = func1[ch]->GetParameter(0);
 
   Double_t intc = -100; // integrated charge
@@ -185,6 +187,7 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
     for(Int_t j=0 ; j<n ; j++){
       //h->SetBinContent(j+1,ph[ch][j]);
       //h->SetBinContent(j+1, ph[ch][j]-offset);
+      // chan_cor = ph[channum][j]; // JW: usually has offset
       chan_cor = ph[channum][j]-offset; // JW: usually has offset
       htmp->SetBinContent(j+1, chan_cor);
       //      std::cout << " channel  " << j << " = " << ph[channum][j] <<std::endl;
@@ -195,10 +198,17 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
       }
 
     }
+
+    std::cout << " fitted peds" << std::endl;
     
 
 
-    intc = htmp->Integral(xmin,xmax);
+    intc = htmp->Integral( (530/4)-5, (530/4)+4 );
+    
+    //    min_int = 15*(n/24.);
+    min_int = 70;
+
+    std::cout << " integral managed, intc = " << intc <<  ", min_int = " << min_int  << std::endl;
     c1->cd(0);
     htmp->Draw();
   

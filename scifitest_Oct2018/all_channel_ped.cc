@@ -50,7 +50,7 @@ void all_channel_ped(int runnum=-1, int pflag = 0, int ref_run = 5049){
   
   const int nch = 64; // the number of total channel 
   //const int n   = 74;
-  const int n   = 24; // the number of data samples
+  const int n   = 400; // the number of data samples
 
   int evID;
   int nn[nch];
@@ -96,7 +96,7 @@ void all_channel_ped(int runnum=-1, int pflag = 0, int ref_run = 5049){
 
   //params for histogram of signal amplitudes
 
-  Double_t ixmin = 3000, ixmax = 8000;
+  Double_t ixmin = 3000*(n/24), ixmax = 8000*(n/24);
 
 
   
@@ -198,7 +198,7 @@ void all_channel_ped(int runnum=-1, int pflag = 0, int ref_run = 5049){
   // rename for later cout statement
   sprintf(pedfname,"./ped_integrals/pedestal_%d.dat",run);
 
-  // values to store infor from new prd
+  // values to store info from new ped
   Double_t holder = -200;
   Double_t iped[nch] = {0};
   Double_t iRMS[nch] = {0};

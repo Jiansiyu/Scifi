@@ -3,11 +3,11 @@
 
 # run=$1
 
-
-
-for run in {5006..5048}
-do
-
+run = 5056
+#
+# for run in {5006..5048}
+# do
+#
 # npe_th0.3
 #scp wm122:~/FADC_${run}.dat data/
 #scp eel122@hapc4:~/data2/SciFi_${run}.dat data/
@@ -30,7 +30,7 @@ root -l <<EOF
 EOF
 
 
-done
+#done
 #root -l<<EOF
 #.x 
 #EOF

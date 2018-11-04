@@ -22,7 +22,7 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   int flag = dataflag;
   int run = runnum;
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 25; 
   const int nch = 64;   // The number of channels (16ch * 2)
@@ -145,7 +145,7 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   // ---- (intmax-intmin)*4.0 ns --- //
   // ------------------------------- //
   int intrange_min = 0;  // default integration range 
-  int intrange_max = 24; // default integration range
+  int intrange_max = n; // default integration range
   int diffch1, diffch2;  // exception channel (for cable length test)
   int nbin_wtime = 10; // bin range for weighted time
 

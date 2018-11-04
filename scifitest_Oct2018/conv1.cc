@@ -22,7 +22,7 @@ void conv1(int runnum = 4600, int dataflag = 0){
   int flag = dataflag;
   int run = runnum;
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 16;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 25; 
   const int nch = 64;   // The number of channels (16ch * 2)

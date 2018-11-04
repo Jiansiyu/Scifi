@@ -20,7 +20,7 @@ R__LOAD_LIBRARY(libsbs)
 #include "SBSEArm.h"
 #include "SBSHCal.h"
 
-void replay_hcal_test(Int_t runnum = 5049, Int_t lastEvent = 100){
+void replay_hcal_test(Int_t runnum = 5049, Int_t lastEvent = 100000){
 
   gSystem->Load("libsbs.so");
   SBSHCal *hcal = new SBSHCal("hcal","HCAL");
@@ -78,7 +78,7 @@ void replay_hcal_test(Int_t runnum = 5049, Int_t lastEvent = 100){
   // Define the analysis parameters
   analyzer->SetEvent( event );
 
-  analyzer->SetOutFile( TString::Format("rootfiles/bunk_fadcACSIS_%d.root",runnum));
+  analyzer->SetOutFile( TString::Format("rootfiles/fadcACSIS_%d.root",runnum));
   // File to record cuts accounting information
   analyzer->SetSummaryFile("sbs_hcal_test.log"); // optional
 

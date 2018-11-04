@@ -66,7 +66,7 @@ void  single_ch_amp(Int_t runnum=-1, Int_t channum = 0, Double_t ped_cut = 6500,
  
   Int_t nch = 64;
   //const Int_t n   = 74;
-  Int_t n = 24;
+  Int_t n = 400;
   //const Int_t n   = 400;
   
        
@@ -157,7 +157,7 @@ void  single_ch_amp(Int_t runnum=-1, Int_t channum = 0, Double_t ped_cut = 6500,
 
   sprintf(hname,"Integrals_tc_%d",channum);
   sprintf(htitle,"Integrals (channel_number_%d) w/time_cut (%.0f - %.0f ns)",channum, tcut_low, tcut_high);
-  integrals_tc = new TH1F(hname,htitle,700,ixmin_tc,ixmax_tc);
+  integrals_tc = new TH1F(hname,htitle,ixmax_tc-ixmin_tc,ixmin_tc,ixmax_tc);
   integrals_tc->GetXaxis()->SetTitle("Integrated amplitude");
  
 
@@ -207,7 +207,7 @@ void  single_ch_amp(Int_t runnum=-1, Int_t channum = 0, Double_t ped_cut = 6500,
 
       if(tcut_outside){ // If you want outside of defined range cut
 
-	if( k> low_bin && k < high_bin){
+	if( k> low_bin-1 && k < high_bin+1){
 	  
 	  htmp_tc->SetBinContent(k+1,ph[channum][k]);
 	}
@@ -310,7 +310,7 @@ void  single_ch_amp(Int_t runnum=-1, Int_t channum = 0, Double_t ped_cut = 6500,
 
   integrals->GetXaxis()->SetRangeUser(mean_2-10*sd_2, mean_2+10*sd_2);
   //  integrals_tc->GetXaxis()->SetRangeUser(mean_2_tc10*sd_2_tc, mean_2_tc+10*sd_2__tc);
-  integrals_tc->GetXaxis()->SetRangeUser(mean_2_tc+30, (mean_2_tc+10*sd_2_tc) + 1000);
+  integrals_tc->GetXaxis()->SetRangeUser(mean_2_tc-10*sd_2, (mean_2_tc+10*sd_2_tc));
 
   //  integrals_tc->SetBins(30);
 

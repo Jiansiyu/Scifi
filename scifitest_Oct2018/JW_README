@@ -87,3 +87,7 @@ Goes through a set of runs (defined by input parameters), and for a specific cha
 
 
 --------------------------------------------------------------------------
+
+Track pedestals through one run
+
+For a single run script calculates pedestals every 1000 bins. Plots are made of these average pedestals, as well as the integral/pedestal for every event and its fit is printed.

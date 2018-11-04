@@ -29,7 +29,7 @@ void conv2(int runnum = 46224624,
   // ====== Parameters and variable definitions ===== //
   // ================================================ //
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   const int nch = 64;   // The number of channels (16ch * 2)
   int nn[nch];          // The number of data which are really stored 
   //double time[nch][n];  // Time in ns
@@ -81,7 +81,9 @@ void conv2(int runnum = 46224624,
   // ========================== //
   // ===== ch-->NPE data ====== //
   // ========================== //
-  ifstream* ifs = new ifstream("./singlePE/spe_46224624.dat");
+
+  sprintf(tempc,"./singlePE/spe_%d.dat",run); 
+  ifstream* ifs = new ifstream(tempc);
   double temp, ped[nch], spe[nch];
   int cha;
   for(int i=0 ; i<nch ; i++){
@@ -90,6 +92,7 @@ void conv2(int runnum = 46224624,
   }
   
   double ent = t1->GetEntries();
+
   
   for(int i=0 ; i<ent ; i++){
     // -------------------------- //
@@ -113,6 +116,9 @@ void conv2(int runnum = 46224624,
     t1->GetEntry(i);
     for(int j=0 ; j<nch ; j++){
       npe[j] = (intc[j]-ped[j])/(spe[j]-ped[j]);
+
+      //      std::cout << "intc[" << j <<  "] =" <<  intc[j] << ", ped[" << j << "] = " << ped[j] << ", spe[" << j << "] ==" <<  spe[j] << std::endl;
+
       ///if(j==22 || j==29 || j==30) npe[j] = -2222.0; // OFF
       //cout << npe[j] << endl;
     }

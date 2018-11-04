@@ -143,7 +143,7 @@ void event_display(Int_t runnum=-1, int ref_run = 5049){
 
 
   char pedfname[500];
-  sprintf(pedfname,"./ped_integrals/pedestal_%d.dat",ref_run);
+  sprintf(pedfname,"./ped_integrals/pedestal_%d.dat",run);
   ifstream* ifs = new ifstream(pedfname);
 
    for(int j=0 ; j<nch ; j++){
@@ -203,7 +203,7 @@ void event_display(Int_t runnum=-1, int ref_run = 5049){
   bool hitfront = false;
   bool hitrear  = false;
   int nmulti=0;
-  const int maxmulti = 20;
+  const int maxmulti = 50;
   int hitfibernum[maxmulti];
   
 

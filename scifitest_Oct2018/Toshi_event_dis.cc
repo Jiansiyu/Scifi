@@ -11,6 +11,7 @@ void Toshi_event_dis(int maxev = 50){
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   char pname[500];
+
   
   // ==================================== //
   // ======== Open ROOT file ============ //
@@ -38,7 +39,7 @@ void Toshi_event_dis(int maxev = 50){
   const int nfiber = 64;
   hemp->Draw();
   TBox* b[nfiber];
-  double phi = 1.0; // phi = 1.0 mm
+  double phi = 1.0; // phi = 1.0 mm, related to width of wire
   double step = 3.79;
   double center = step * (32.-1.) / 2.0; // 121.28/2 mm
   double length = center*2.0; // mm

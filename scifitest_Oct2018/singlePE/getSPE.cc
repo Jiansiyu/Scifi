@@ -37,6 +37,8 @@ void getSPE(int anach = 0, int run  = 5049){
   // ============================== //
   // ===== General conditions ===== //
   // ============================== //
+  Int_t n = 400; // fac window
+
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   if(anach<0 || anach>63) anach = 0;
@@ -73,12 +75,11 @@ void getSPE(int anach = 0, int run  = 5049){
   // ===== Fit to pedestal ======== //
   // ============================== //
   TF1* func1 = new TF1("func1",fitf,
-		       -500.0, 1000.0, 
-		       3);
+		       -1000.0, 2000.0); // deleted ,3 at end of constructor
   func1->SetParameter(0, 10000.0);
   func1->SetParameter(1, 0.0);
-  func1->SetParameter(2, 25.0);
-  func1->SetParLimits(1, -200.0, 200.0);
+  func1->SetParameter(2, 55.0);
+  func1->SetParLimits(1, -300.0, 300.0);
   
   //func1->SetParameter(3, 800.0);
   //func1->SetParameter(4, 350.0);
@@ -100,10 +101,10 @@ void getSPE(int anach = 0, int run  = 5049){
 		       -500.0, 1600.0, 
 		       9); 
   func2->SetNpx(1000);
-  func2->SetParameter(0, 100.0);
-  func2->SetParameter(1, 300.0); func2->SetParLimits(1, 200.0, 700.0);
+  func2->SetParameter(0, 500.0);
+  func2->SetParameter(1, 1000.0); func2->SetParLimits(1, 200.0, 1700.0);
   //func2->SetParameter(2, 80.0); func2->SetParLimits(2, 75.0, 300.0);
-  func2->SetParameter(2, 80.0); func2->SetParLimits(2, 75.0, 300.0);
+  func2->SetParameter(2, 180.0); func2->SetParLimits(2, 75.0, 300.0);
   func2->SetParameter(3, 50.0);
   func2->SetParameter(4, -0.05); func2->SetParLimits(4,-0.08,0.0);
   func2->FixParameter(5, func1->GetParameter(0));
