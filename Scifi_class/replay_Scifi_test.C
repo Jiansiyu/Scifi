@@ -23,7 +23,7 @@
 #include "Scifi_class/SciFi.h"
 #include "Scifi_class/THaHRS.h" // some kind of arm...
 
-void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 10){
+void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 1){
 
   //  gSystem->Load("libsbs.so");
   gSystem->Load("Scifi_class/libSciFi.so");

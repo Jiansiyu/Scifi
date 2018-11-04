@@ -23,14 +23,19 @@
 using namespace std;
 using namespace Decoder;
 //_____________________________________________________________________________
-SciFi::SciFi( const char* name, const char* description, THaApparatus* apparatus ): THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0), fA(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+SciFi::SciFi( const char* name, const char* description, THaApparatus* apparatus )
+: THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0), fA(0),
+  fAHits(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
+  foverflow(0), funderflow(0),fpedq(0), fNhits(0)
 {
   // Constructor
   fFADC=NULL;
 }
 
 //_____________________________________________________________________________
-SciFi::SciFi(): THaNonTrackingDetector(), fPed(0), fGain(0), fA(0), fA_p(0), fA_c(0),fPeak(0), foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+SciFi::SciFi()
+: THaNonTrackingDetector(), fPed(0), fGain(0), fA(0), fAHits(0),
+  fA_p(0), fA_c(0),fPeak(0),foverflow(0), funderflow(0),fpedq(0),fNhits(0)
 {
   // Default constructor (for ROOT I/O)
 }
@@ -124,7 +129,9 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
     // Per-event data
     // fT    = new Float_t[ nval ];
     // fT_c  = new Float_t[ nval ];
+    fhitsperchannel = new Int_t[ nval];
     fA    = new Float_t[ nval ];
+    fAHits = new Int_t[ 64];
     fA_p  = new Float_t[ nval ];
     fA_c  = new Float_t[ nval ];
 
@@ -162,11 +169,11 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
     { "pedestals",    fPed,         kFloat, nval, 1 },
     { "gains",        fGain,        kFloat, nval, 1 },
     //    { "tdc.res",          &fTdc2T,      kDouble },
-    { "NPED",             &fNPED,        kInt},
-    { "NSA",              &fNSA,         kInt},
-    { "NSB",              &fNSB,         kInt},
-    { "Win",              &fWin,         kInt},
-    { "TFlag",            &fTFlag,       kInt},
+    // { "NPED",             &fNPED,        kInt, 1, 1},
+    // { "NSA",              &fNSA,         kInt},
+    // { "NSB",              &fNSB,         kInt},
+    // { "Win",              &fWin,         kInt},
+    // { "TFlag",            &fTFlag,       kInt},
     { 0 }
   };
   err = LoadDB( file, date, calib_request, fPrefix );
@@ -190,7 +197,9 @@ Int_t SciFi::DefineVariables( EMode mode )
     // { "nahit",  "Number of Right paddles TDC times", "fNAhit" },
     // { "t",      "TDC values",                        "fT" },
     // { "t_c",    "Corrected TDC values",              "fT_c" },
+    { "a_hitperchannel", "hits per chanel", "fhitsperchannel"},
     { "a",      "ADC values",                        "fA" },
+    { "a_AHits",      "Number of hits in an ADC",     "fAHits" },
     { "a_p",    "Ped-subtracted ADC values ",        "fA_p" },
     { "a_c",    "Corrected ADC values",              "fA_c" },
     { "peak",   "FADC ADC peak values",              "fPeak" },
@@ -208,6 +217,40 @@ Int_t SciFi::DefineVariables( EMode mode )
     { 0 }
   };
   return DefineVarsFromList( vars, mode );
+
+  // raw mode pulse data variables
+
+  std::vector<VarDef> vars2;
+  for(Int_t m = 0; m < fNelem; m++) {
+    VarDef v;
+    char *name   =  new char[128];
+    char *name_p = new char[128];
+    char *name_c = new char[128];
+    sprintf(name,"a.raw%.2d",m);
+    sprintf(name_p,"a_p.m%d",m);
+    sprintf(name_c,"a_c.m%d",m);
+    char *desc = new char[256];
+    sprintf(desc,"Raw ADC samples for Module %d",m);
+    v.name = name;
+    v.desc = "Raw ADC samples";
+    v.type = kDouble;
+    v.size = MAX_FADC_SAMPLES;
+    v.loc  = &(fASamples[m].data()[0]); //JW: location of data
+    v.count = &fNumSamples[m];
+    vars2.push_back(v);
+    v.name = name_p;
+    v.desc = "Pedestal subtracted ADC samples";
+    v.loc = &(fASamplesPed[m].data()[0]);
+    vars2.push_back(v);
+    v.name = name_c;
+    v.desc = "Pedestal subtracted calibrated ADC samples";
+    v.loc = &(fASamplesCal[m].data()[0]);
+    vars2.push_back(v);
+  }
+  vars2.push_back(VarDef());
+  return DefineVarsFromList( vars2.data(), mode );
+
+
 }
 
 //_____________________________________________________________________________
@@ -227,7 +270,9 @@ void SciFi::DeleteArrays()
 {
   // Delete member arrays. Internal function used by destructor.
 
+  delete [] fhitsperchannel; fhitsperchannel = NULL;
   delete [] fA_c;    fA_c    = NULL;
+  delete [] fAHits;    fAHits    = NULL;
   delete [] fA_p;    fA_p    = NULL;
   delete [] fA;      fA      = NULL;
   // delete [] fT_c;    fT_c    = NULL;
@@ -244,11 +289,17 @@ void SciFi::DeleteArrays()
   delete [] funderflow; funderflow = NULL;
   delete [] fpedq;      fpedq      = NULL;
   delete [] fNhits;     fNhits     = NULL;
+
+  delete []
 }
 
 //_____________________________________________________________________________
 void SciFi::Clear( Option_t* opt )
 {
+
+  // clear raw mode fadc data
+  
+
   // Clear event data
   THaNonTrackingDetector::Clear(opt);
   // fNThit = fNAhit = 0;
@@ -256,9 +307,11 @@ void SciFi::Clear( Option_t* opt )
   for( Int_t i=0; i<fNelem; ++i ) {
     // fT[i] = fT_c[i] = 0.0;
     fA[i] = fA_p[i] = fA_c[i] = 0.0;
+    fhitsperchannel[i] = 0;
     fPeak[i]=0.0;
     fT_FADC[i]=0.0;
     fT_FADC_c[i]=0.0;
+    fAHits[i] = 10;
   }
   fASUM_p = fASUM_c = 0.0;
 
@@ -267,6 +320,7 @@ void SciFi::Clear( Option_t* opt )
     memset( funderflow, 0, fNelem*sizeof(funderflow[0]) );
     memset( fpedq, 0, fNelem*sizeof(fpedq[0]) );
     memset( fNhits, 0, fNelem*sizeof(fNhits[0]) );
+    memset( fAHits, 0, fNelem*sizeof(fAHits[0]) );
   }
 }
 
@@ -279,6 +333,9 @@ Int_t SciFi::Decode( const THaEvData& evdata )
   // entries corresponds to ADCs, and the second half, to TDCs.
 
   // this next loop should go through 4 entries (4 fadc modules with 16 channels apeice)
+
+  Int_t noevents = 1000;
+
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
 
     cout << " detmap size is " << fDetMap->GetSize() << endl;
@@ -308,6 +365,10 @@ Int_t SciFi::Decode( const THaEvData& evdata )
       // removed -1 at end, not sure of purpose
       Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo);
 
+      //      fAHits[k] = fFADC->GetNumFadcEvents(chan);
+
+      cout << "fAHits[k] [" << k << "] = fFADC->GetNumFadcEvents(chan) =  (" << chan << ") " << fFADC->GetNumFadcEvents(chan) << endl;
+
 #ifdef WITH_DEBUG
       if( k<0 || k>= fNelem ) {
         Warning( Here("Decode()"), "Illegal detector channel: %d, chan = %d, hit no = %d,  i = %d", k, chan, j, i );
@@ -321,24 +382,41 @@ Int_t SciFi::Decode( const THaEvData& evdata )
       Int_t fpeak=0;
       Float_t tempPed = fPed[k];             // Dont overwrite DB pedestal value!!! -- REM -- 2018-08-21
       // if(adc){
+
+
+      
+
+
       data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
       ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
       fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
       // }
       // else{ 
-      // 	fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
+      fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
       // 	data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
       // }
 
-      // if(adc){
+      // if(adec){
+
+      //noevents = 1000;
+      noevents = fFADC->GetNumFadcEvents(chan);
+
       if(fFADC!=NULL){
 	foverflow[k] = fFADC->GetOverflowBit(chan,0);
 	funderflow[k] = fFADC->GetUnderflowBit(chan,0);
 	fpedq[k] = fFADC->GetPedestalQuality(chan,0);
+
+	noevents = fFADC->GetNumFadcEvents(chan);
+	//	fAHits[k] = fFADC->GetNumFadcEvents(chan);
 	//       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
       }
-      if(fpedq[k]==0)
+      
+
+      std::cout << " tempped/ fpedq[k] = " << fPed[k] << std::endl;
+
+      if(fpedq[k]==0 && fpedq[k] == 100000) // JW: added condition to make flase
 	{
+	  std::cout << " passed 100000 condition " << std::endl;
 	  if(fTFlag == 1)
 	    {
 	      tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
@@ -348,26 +426,30 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 	      tempPed=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
 	    }
 	}
-	//       else
-   //       {
-   //         printf("\nWARNING: BAD FADC PEDESTAL\n");
-   //       }
-      // }
+	
+      if(fpedq[k]!=0)
+	{
+	  printf("\nWARNING: BAD ADC PEDESTAL\n");
+	}
+      
+    // }
       
       // Copy the data to the local variables.
       // if ( adc ) {
       fA[k]   = data;
+      //      fAHits[k] = noevents; 
       fPeak[k] = static_cast<Float_t>(fpeak);
       fT_FADC[k]=static_cast<Float_t>(ftime);
       fT_FADC_c[k]=fT_FADC[k]*0.0625;
       fA_p[k] = data - tempPed;
-      fA_c[k] = fA_p[k] * fGain[k];
+      fhitsperchannel[k] = 10;
+      fA_c[k] = noevents;
       // only add channels with signals to the sums
       if( fA_p[k] > 0.0 )
 	fASUM_p += fA_p[k];
       if( fA_c[k] > 0.0 )
 	fASUM_c += fA_c[k];
-      fNAhit++;
+      //      fNAhit++;
       // } else {
       // 	// fT[k]   = data;
       // 	// fT_c[k] = data - fOff[k];
@@ -398,8 +480,9 @@ Int_t SciFi::Decode( const THaEvData& evdata )
     }
   }
 
+  return noevents;
   // return fNThit;
-  return fNAhit++;
+  //  return fNAhit++;
 }
 
 //_____________________________________________________________________________

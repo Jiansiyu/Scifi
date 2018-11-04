@@ -45,8 +45,10 @@ protected:
   /* Int_t      fNThit;      // Number of mirrors with non zero TDC times */
   /* Float_t*   fT;          // [fNelem] Array of TDC times of channels */
   /* Float_t*   fT_c;        // [fNelem] Array of corrected TDC times of channels */
-  Int_t      fNAhit;      // Number of ADCs with non zero ADC amplitudes
+  //  Int_t      fNAhit;      // Number of ADCs with non zero ADC amplitudes
+  Int_t*     fhitsperchannel; // hits for each channel
   Float_t*   fA;          // [fNelem] Array of ADC amplitudes of channels
+  Int_t*     fAHits;      // Numbers of hits on each ADC
   Float_t*   fA_p;        // [fNelem] Array of ADC minus pedestal values of chans
   Float_t*   fA_c;        // [fNelem] Array of corrected ADC amplitudes of chans
   Float_t    fASUM_p;     // Sum of ADC minus pedestal values of channels
@@ -59,9 +61,17 @@ protected:
   Int_t* foverflow;         //[fNelem] FADC overflowbit
   Int_t* funderflow;        //[fNelem] FADC underflowbit
   Int_t* fpedq;             //[fNelem] FADC pedestal quality bit
-  Decoder::Fadc250Module *fFADC;     //pointer to FADC250Module class
 
+  Decoder::Fadc250Module *fFADC;     //pointer to FADC250Module class
   Int_t* fNhits;           //[fNelem] number of hits for each PMT
+
+  // raw mode
+  
+  std::vector<Int_t>   fNumSamples; // [fNelem] Number of samples in each ADC/module
+  std::vector<std::vector<Double_t> > fASamples; // [fNumSamples] Raw ADC samples
+  std::vector<std::vector<Double_t> > fASamplesPed; // [fNumSamples] Ped correct ADC samples
+  std::vector<std::vector<Double_t> > fASamplesCal; // [fNumSamples] Calibrated ADC samples
+  std::vector<Float_t> fBsum; // [fNelem] Sum of raw ADC data for each block // MAPC
 
 
   virtual Int_t  DefineVariables( EMode mode = kDefine );

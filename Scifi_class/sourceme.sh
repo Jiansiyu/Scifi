@@ -1,1 +1,2 @@
-setenv DB_DIR DB
+setenv DB_DIR DB=./DB/
+
