@@ -19,6 +19,7 @@
 #include <cstdlib>
 #include <cstdio>
 #include <vector>
+#define MAX_FADC_SAMPLES 400 // Max number of samples allowed
 
 using namespace std;
 using namespace Decoder;
@@ -290,7 +291,7 @@ void SciFi::DeleteArrays()
   delete [] fpedq;      fpedq      = NULL;
   delete [] fNhits;     fNhits     = NULL;
 
-  delete []
+  //  delete []
 }
 
 //_____________________________________________________________________________
@@ -336,6 +337,17 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
   Int_t noevents = 1000;
 
+  
+  Int_t mode, num_events, num_samples;
+  Bool_t raw_mode = kFALSE;
+  
+
+  raw_mode = (mode == 1) || (mode == 8) || (mode == 10);
+
+
+
+
+
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
 
     cout << " detmap size is " << fDetMap->GetSize() << endl;
@@ -355,6 +367,9 @@ Int_t SciFi::Decode( const THaEvData& evdata )
     // change: removed if condition for fadc (should be only thing present)
     fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
 
+    mode = fFADC->GetFadcMode();
+
+
     // Loop over all channels that have a hit.
     for( Int_t j = 0; j < evdata.GetNumChan( d->crate, d->slot ); j++) {
 
@@ -367,122 +382,157 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
       //      fAHits[k] = fFADC->GetNumFadcEvents(chan);
 
-      cout << "fAHits[k] [" << k << "] = fFADC->GetNumFadcEvents(chan) =  (" << chan << ") " << fFADC->GetNumFadcEvents(chan) << endl;
+      
+      // section for processing non-raw mode Fadc output
+
+      if(!raw_mode){
+	
+	cout << "fAHits[k] [" << k << "] = fFADC->GetNumFadcEvents(chan) =  (" << chan << ") " << fFADC->GetNumFadcEvents(chan) << endl;
 
 #ifdef WITH_DEBUG
-      if( k<0 || k>= fNelem ) {
-        Warning( Here("Decode()"), "Illegal detector channel: %d, chan = %d, hit no = %d,  i = %d", k, chan, j, i );
-        continue;
-      }
+	if( k<0 || k>= fNelem ) {
+	  Warning( Here("Decode()"), "Illegal detector channel: %d, chan = %d, hit no = %d,  i = %d", k, chan, j, i );
+	  continue;
+	}
 #endif
-
-      // Get the data. fADCs are assumed to have only single hit (hit=0)
-      Int_t data;
-      Int_t ftime=0;
-      Int_t fpeak=0;
-      Float_t tempPed = fPed[k];             // Dont overwrite DB pedestal value!!! -- REM -- 2018-08-21
-      // if(adc){
-
-
-      
-
-
-      data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
-      ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
-      fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
-      // }
-      // else{ 
-      fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
-      // 	data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
-      // }
-
-      // if(adec){
-
-      //noevents = 1000;
-      noevents = fFADC->GetNumFadcEvents(chan);
-
-      if(fFADC!=NULL){
-	foverflow[k] = fFADC->GetOverflowBit(chan,0);
-	funderflow[k] = fFADC->GetUnderflowBit(chan,0);
-	fpedq[k] = fFADC->GetPedestalQuality(chan,0);
-
+	
+	// Get the data. fADCs are assumed to have only single hit (hit=0)
+	Int_t data;
+	Int_t ftime=0;
+	Int_t fpeak=0;
+	Float_t tempPed = fPed[k];             // Dont overwrite DB pedestal value!!! -- REM -- 2018-08-21
+	// if(adc){
+	
+	
+	
+	data = evdata.GetData(kPulseIntegral,d->crate,d->slot,chan,0);
+	ftime = evdata.GetData(kPulseTime,d->crate,d->slot,chan,0);
+	fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
+	// }
+	// else{ 
+	fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
+	// 	data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
+	// }
+	
+	// if(adec){
+	
+	//noevents = 1000;
 	noevents = fFADC->GetNumFadcEvents(chan);
-	//	fAHits[k] = fFADC->GetNumFadcEvents(chan);
-	//       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
-      }
-      
-
-      std::cout << " tempped/ fpedq[k] = " << fPed[k] << std::endl;
-
-      if(fpedq[k]==0 && fpedq[k] == 100000) // JW: added condition to make flase
-	{
-	  std::cout << " passed 100000 condition " << std::endl;
-	  if(fTFlag == 1)
-	    {
-	      tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
-	    }
-	  else
-	    {
-	      tempPed=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
-	    }
+	
+	if(fFADC!=NULL){
+	  foverflow[k] = fFADC->GetOverflowBit(chan,0);
+	  funderflow[k] = fFADC->GetUnderflowBit(chan,0);
+	  fpedq[k] = fFADC->GetPedestalQuality(chan,0);
+	  
+	  noevents = fFADC->GetNumFadcEvents(chan);
+	  //	fAHits[k] = fFADC->GetNumFadcEvents(chan);
+	  //       if(foverflow[k]+funderflow[k]+fpedq[k] != 0) printf("Bad Quality: (over, under, ped)= (%i,%i,%i)\n",foverflow[k],funderflow[k],fpedq[k]);
 	}
 	
-      if(fpedq[k]!=0)
-	{
-	  printf("\nWARNING: BAD ADC PEDESTAL\n");
+	
+	std::cout << " tempped/ fpedq[k] = " << fPed[k] << std::endl;
+	
+	if(fpedq[k]==0 && fpedq[k] == 100000) // JW: added condition to make false
+	  {
+	    std::cout << " passed 100000 condition " << std::endl;
+	    if(fTFlag == 1)
+	      {
+		tempPed=(fNSA+fNSB)*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+	      }
+	    else
+	      {
+		tempPed=fWin*(static_cast<Double_t>(evdata.GetData(kPulsePedestal,d->crate,d->slot,chan,0)))/fNPED;
+	      }
+	  }
+	
+	if(fpedq[k]!=0)
+	  {
+	    printf("\nWARNING: BAD ADC PEDESTAL\n");
+	  }
+	
+	// }
+	
+	// Copy the data to the local variables.
+	// if ( adc ) {
+	fA[k]   = data;
+	//      fAHits[k] = noevents; 
+	fPeak[k] = static_cast<Float_t>(fpeak);
+	fT_FADC[k]=static_cast<Float_t>(ftime);
+	fT_FADC_c[k]=fT_FADC[k]*0.0625;
+	fA_p[k] = data - tempPed;
+	fhitsperchannel[k] = 10;
+	fA_c[k] = noevents;
+	// only add channels with signals to the sums
+	if( fA_p[k] > 0.0 )
+	  fASUM_p += fA_p[k];
+	if( fA_c[k] > 0.0 )
+	  fASUM_c += fA_c[k];
+	//      fNAhit++;
+	// } else {
+	// 	// fT[k]   = data;
+	// 	// fT_c[k] = data - fOff[k];
+	// 	fNThit++;
+	// }
+      }
+    
+    
+      if ( fDebug > 3 ) {
+	printf("\nSciFi %s:\n",GetPrefix());
+	int ncol=2;
+	for (int i=0; i<ncol; i++) {
+	  printf("  ADC  ADC_p  ");
 	}
-      
-    // }
-      
-      // Copy the data to the local variables.
-      // if ( adc ) {
-      fA[k]   = data;
-      //      fAHits[k] = noevents; 
-      fPeak[k] = static_cast<Float_t>(fpeak);
-      fT_FADC[k]=static_cast<Float_t>(ftime);
-      fT_FADC_c[k]=fT_FADC[k]*0.0625;
-      fA_p[k] = data - tempPed;
-      fhitsperchannel[k] = 10;
-      fA_c[k] = noevents;
-      // only add channels with signals to the sums
-      if( fA_p[k] > 0.0 )
-	fASUM_p += fA_p[k];
-      if( fA_c[k] > 0.0 )
-	fASUM_c += fA_c[k];
-      //      fNAhit++;
-      // } else {
-      // 	// fT[k]   = data;
-      // 	// fT_c[k] = data - fOff[k];
-      // 	fNThit++;
-      // }
-    }
-  }
-
-  if ( fDebug > 3 ) {
-    printf("\nSciFi %s:\n",GetPrefix());
-    int ncol=2;
-    for (int i=0; i<ncol; i++) {
-      printf("  ADC  ADC_p  ");
-    }
-    printf("\n");
- 
-    for (int i=0; i<(fNelem+ncol-1)/ncol; i++ ) {
-      for (int c=0; c<ncol; c++) {
-	int ind = c*fNelem/ncol+i;
-	if (ind < fNelem) {
-	  printf("  %3d  %5.0f  %5.0f  ",ind+1,fA[ind],fA_p[ind]);
-	} else {
-	  //	  printf("\n");
-	  break;
+	printf("\n");
+	
+	for (int i=0; i<(fNelem+ncol-1)/ncol; i++ ) {
+	  for (int c=0; c<ncol; c++) {
+	    int ind = c*fNelem/ncol+i;
+	    if (ind < fNelem) {
+	      printf("  %3d  %5.0f  %5.0f  ",ind+1,fA[ind],fA_p[ind]);
+	    } else {
+	    //	  printf("\n");
+	      break;
+	    }
+	  }
+	printf("\n");
 	}
       }
-      printf("\n");
+      
+      // section for processing raw mode
+      
+      if (raw_mode){
+	
+	
+	Int_t p = fDetMap[i][k] - 1;
+	
+	
+	num_events = fadc->GetNumFadcEvents(chan);
+	
+
+	num_samples = fFADC->GetNumFadcSamples(chan,0);
+	if(num_samples > MAX_FADC_SAMPLES || num_samples < 0) {
+	  Error( Here(here),
+		 "Too manu samples in fFADC: %d out of %d MAX",num_samples,
+	       MAX_FADC_SAMPLES);
+	} else {
+	  fNumSamples[p] = num_samples;
+	  std::vector<UInt_t> samples = fFADC->GetPulseSamplesVector(chan);
+	  for(Int_t s = 0; s < num_samples; s++) {
+	  //cout << samples[s] << endl;
+	    fASamples[p][s] = samples[s];
+	    fASamplesPed[p][s] = fASamples[p][s]-fPed[p];
+	    fASamplesCal[p][s] = fASamplesPed[p][s]*fGain[p];
+	    fBsum[p] += samples[s];
+	  }
+	}
+      }
+      
     }
   }
 
-  return noevents;
-  // return fNThit;
-  //  return fNAhit++;
+    return noevents;
+    // return fNThit;
+    //  return fNAhit++;
 }
 
 //_____________________________________________________________________________
