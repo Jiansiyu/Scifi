@@ -342,11 +342,6 @@ Int_t SciFi::Decode( const THaEvData& evdata )
   Bool_t raw_mode = kFALSE;
   
 
-  raw_mode = (mode == 1) || (mode == 8) || (mode == 10);
-
-
-
-
 
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
 
@@ -369,6 +364,7 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
     mode = fFADC->GetFadcMode();
 
+    raw_mode = (mode == 1) || (mode == 8) || (mode == 10);
 
     // Loop over all channels that have a hit.
     for( Int_t j = 0; j < evdata.GetNumChan( d->crate, d->slot ); j++) {
@@ -503,10 +499,10 @@ Int_t SciFi::Decode( const THaEvData& evdata )
       if (raw_mode){
 	
 	
-	Int_t p = fDetMap[i][k] - 1;
+	//	Int_t p = fDetMap[i][k] - 1;
+	//  Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo);	
 	
-	
-	num_events = fadc->GetNumFadcEvents(chan);
+	num_events = fFADC->GetNumFadcEvents(chan);
 	
 
 	num_samples = fFADC->GetNumFadcSamples(chan,0);
@@ -515,14 +511,14 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 		 "Too manu samples in fFADC: %d out of %d MAX",num_samples,
 	       MAX_FADC_SAMPLES);
 	} else {
-	  fNumSamples[p] = num_samples;
+	  fNumSamples[k] = num_samples;
 	  std::vector<UInt_t> samples = fFADC->GetPulseSamplesVector(chan);
 	  for(Int_t s = 0; s < num_samples; s++) {
 	  //cout << samples[s] << endl;
-	    fASamples[p][s] = samples[s];
-	    fASamplesPed[p][s] = fASamples[p][s]-fPed[p];
-	    fASamplesCal[p][s] = fASamplesPed[p][s]*fGain[p];
-	    fBsum[p] += samples[s];
+	    fASamples[k][s] = samples[s];
+	    fASamplesPed[k][s] = fASamples[k][s]-fPed[k];
+	    fASamplesCal[k][s] = fASamplesPed[k][s]*fGain[k];
+	    fBsum[k] += samples[s];
 	  }
 	}
       }
