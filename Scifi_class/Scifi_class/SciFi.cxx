@@ -366,6 +366,8 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
     raw_mode = (mode == 1) || (mode == 8) || (mode == 10);
 
+    std::cout << "Fadc mode is " << mode << std::endl;
+
     // Loop over all channels that have a hit.
     for( Int_t j = 0; j < evdata.GetNumChan( d->crate, d->slot ); j++) {
 
@@ -378,7 +380,8 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
       //      fAHits[k] = fFADC->GetNumFadcEvents(chan);
 
-      
+      std::cout << "Channel number : " << k << "\n" << "Loop number : " << j << std::endl;
+
       // section for processing non-raw mode Fadc output
 
       if(!raw_mode){
@@ -502,17 +505,31 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 	//	Int_t p = fDetMap[i][k] - 1;
 	//  Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo);	
 	
+	std::cout << "Entered raw mode" << std::endl;
+
+
 	num_events = fFADC->GetNumFadcEvents(chan);
 	
-
+	std::cout << "First Check " << std::endl;
+	
 	num_samples = fFADC->GetNumFadcSamples(chan,0);
+
+	std::cout << "2nd Check " << std::endl;
+
 	if(num_samples > MAX_FADC_SAMPLES || num_samples < 0) {
 	  Error( Here(here),
 		 "Too manu samples in fFADC: %d out of %d MAX",num_samples,
 	       MAX_FADC_SAMPLES);
 	} else {
+	  
+	  std::cout << "Bonus Check " << std::endl;
+	  Double_t John =  fNumSamples[1];
+
+	  std::cout << "3rd Check " << std::endl;
 	  fNumSamples[k] = num_samples;
+	  std::cout << "4th Check " << std::endl;
 	  std::vector<UInt_t> samples = fFADC->GetPulseSamplesVector(chan);
+	  std::cout << "5th Check " << std::endl;
 	  for(Int_t s = 0; s < num_samples; s++) {
 	  //cout << samples[s] << endl;
 	    fASamples[k][s] = samples[s];

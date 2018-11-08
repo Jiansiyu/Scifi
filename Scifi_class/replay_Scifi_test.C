@@ -9,8 +9,8 @@
 
 #include "TSystem.h"
 #include "TList.h"
-#include "THaRun.h"
 #include "THaEvent.h"
+#include "THaRun.h"
 #include "THaAnalyzer.h"
 #include "THaApparatus.h"
 
@@ -83,14 +83,14 @@ void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 1){
   run->SetDate(TDatime());
 
   analyzer->SetVerbosity(0);
-  analyzer->SetOdefFile("output_hcal_test.def");
+  analyzer->SetOdefFile("output_SciFi_test.def");
 
   // Define the analysis parameters
   analyzer->SetEvent( event );
 
   analyzer->SetOutFile( TString::Format("rootfiles/bunk_fadcACSIS_%d.root",runnum));
   // File to record cuts accounting information
-  analyzer->SetSummaryFile("sbs_hcal_test.log"); // optional
+  analyzer->SetSummaryFile("SciFi_test.log"); // optional
 
   //analyzer->SetCompressionLevel(0); // turn off compression
   analyzer->Process(run);     // start the actual analysis
