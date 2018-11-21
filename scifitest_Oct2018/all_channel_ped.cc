@@ -50,7 +50,7 @@ void all_channel_ped(int runnum=-1, int pflag = 0, int ref_run = 5049){
   
   const int nch = 64; // the number of total channel 
   //const int n   = 74;
-  const int n   = 400; // the number of data samples
+  const int n   = 24; // the number of data samples
 
   int evID;
   int nn[nch];

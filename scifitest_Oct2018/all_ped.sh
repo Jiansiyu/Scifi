@@ -1,18 +1,17 @@
 #!/bin/sh
-
-
 # run=$1
 
 
 
-#for run in {5052..5053}
+#for run in {5192..5197}
 #do
 
-run=5078
+run=5195
 
 # npe_th0.3
-#scp wm122:~/FADC_${run}.dat data/
+# scp wm122:~/FADC_${run}.dat data/
 scp eel122@hapc4:~/data2/SciFi_${run}.dat data/
+scp eel122@hapc4:~/data2/README RUN_DATA_INFO
 
  analyzer "replay_hcal_test.C(${run})" <<EOF
 
