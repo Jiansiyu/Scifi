@@ -7,6 +7,18 @@
   Toshiyuki Gogami, November 27, 2017
 */
 
+#include <iostream>
+#include <fstream>
+#include <chrono>
+#include <TFile.h>
+#include <TTree.h>
+#include <TH1F.h>
+#include <TH2F.h>
+#include <TROOT.h>
+#include <TStyle.h>
+
+using namespace std;
+using namespace std::chrono;
 
 void conv1_JW(int runnum = 4600, int dataflag = 0){
   // =================================== //
@@ -15,14 +27,14 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
   
-  
+  high_resolution_clock::time_point ti_start = high_resolution_clock::now();
   // ================================================ //
   // ====== Parameters and variable definitions ===== //
   // ================================================ //
   int flag = dataflag;
   int run = runnum;
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 25; 
   const int nch = 64;   // The number of channels (16ch * 2)
@@ -47,6 +59,10 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   cout << " _________________________________________" << endl;
   cout << " Channel map, " << chmapdata << " is used." << endl;
   cout << " _________________________________________" << endl;
+
+
+  high_resolution_clock::time_point ti1 = high_resolution_clock::now();
+
   for(int i=0 ; i<nch ; i++){
     int ttemp, ttemp2;
     char ttempc[500];
@@ -54,6 +70,7 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
     nscifi[i] = nscifi[i] - 1; // Subtraction by 1 because # starts from 1
   }
   ifs->close();
+  high_resolution_clock::time_point ti2 = high_resolution_clock::now();
   
   // =============================== //
   // ====== Read pedestal data ===== //
@@ -76,6 +93,13 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   // ================================== //
   // ====== Open input ROOT file  ===== //
   // ================================== //
+
+
+  TH1F* hph[nch];
+
+  int xbin = n; 
+  double xmin = 0.0, xmax = n*4.0;
+
   char inputfilename[500];
 
   sprintf(inputfilename,"./rootfiles/fadcACSIS_%d.root",run);
@@ -99,9 +123,14 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
       sprintf(name,"sbs.hcal.a.raw%d",i);
     }
     t1->SetBranchAddress(name,&ph[i]);
+
+    char hname[500];
+    sprintf(hname,"hph%d",i);
+    hph[i] = new TH1F(hname,"", xbin, xmin, xmax);
+
   }
   
-  //  std::cout << " I defined an input tree! " << std::endl;
+  // std::cout << " I defined an input tree! " << std::endl;
 
   // ================================== //
   // ====== Create a new ROOT file  === //
@@ -121,7 +150,7 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   tnew->Branch("runID",  &run,  "runID/I");
   tnew->Branch("evID",   &evID, "evID/I");
   sprintf(tempc,"nn[%d]/I", nch);         tnew->Branch("nent",  &nn,    tempc);
-  //  std::cout << "I defined branches of a n output tree!" << std::endl;
+   std::cout << "I defined branches of a n output tree!" << std::endl;
   if(flag==0){
     //sprintf(tempc,"time[%d][%d]/D", nch, n);tnew->Branch("time",  &time,  tempc);
     sprintf(tempc,"ph[%d][%d]/D", nch, n);  tnew->Branch("ph",    &ph,    tempc);
@@ -132,11 +161,11 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   sprintf(tempc,"intc_raw[%d]/D",   nch);  tnew->Branch("intc_raw",  &intc_raw,  tempc);
   sprintf(tempc,"nscifi[%d]/I", nch);  tnew->Branch("nscifi",&nscifi,tempc);
   
-  //  std::cout << "I fully defined output tree!" << std::endl;
+  std::cout << "I fully defined output tree again" << std::endl;
 
-  TH1F* hph[nch];
-  int xbin = n; 
-  double xmin = 0.0, xmax = n*4.0;
+  // TH1F* hph[nch];
+  // int xbin = n; 
+  // double xmin = 0.0, xmax = n*4.0;
   double ph_max = 0.0;
   int ph_max_bin = 0;
   
@@ -165,12 +194,31 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   
   //  std::cout << "Just before getting entries!" << std::endl;
   double ent = t1->GetEntries();
-  //  std::cout << "Just after getting entrie " << std::endl;
+  //  std::cout << "Just after getting entries " << std::endl;
+
+  high_resolution_clock::time_point ti_calc1 = high_resolution_clock::now();
+
+  high_resolution_clock::time_point ti_GE1;
+  high_resolution_clock::time_point ti_GE2;
+
+  high_resolution_clock::time_point ti_Weight1;
+  high_resolution_clock::time_point ti_Weight2;
+
+  high_resolution_clock::time_point ti_Int1;
+  high_resolution_clock::time_point ti_Int2;
+
+  high_resolution_clock::time_point ti_calc_ch_1;
+  high_resolution_clock::time_point ti_calc_ch_2;
+
+  high_resolution_clock::time_point ti_filling_1;     
+  high_resolution_clock::time_point ti_filling_2;      
+
 
   for(int i=0 ; i<ent ; i++){
     evID++;
     // ----- Intializing variables ----- //
     for(int j=0 ; j<nch ; j++){
+
       nn[j]    = -2;
       intc[j]  = -2222.0;
       intc_raw[j]  = -2222.0;
@@ -186,14 +234,22 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
     // -------------------------------- //
     // ------- Start filling data ----- //
     // -------------------------------- //
-
+    
     //    std::cout << "just before getting individual entry " << std::endl;
- 
-   t1->GetEntry(i);
-   //   std::cout << "just after getting indiv entry !!! "<< std::endl;
+    
+    ti_GE1 = high_resolution_clock::now();
+    t1->GetEntry(i);
+    ti_GE2 = high_resolution_clock::now();
+
+    //    std::cout << "just after getting indiv entry !!! "<< std::endl;
+
     for(int j=0 ; j<nch ; j++){
+
+      ti_calc_ch_1 = high_resolution_clock::now();      
       
       // -------- Exception handling for cable length test ------ //
+      ti_filling_1 = high_resolution_clock::now();      
+      
       if(diffch1>-1 && diffch2>-1){
 	if(j==diffch1 || j==diffch2){ 
 	  intrange_min = 56;
@@ -205,9 +261,9 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
 	}
       }
       
-      char hname[500];
-      sprintf(hname,"hph%d",j);
-      hph[j] = new TH1F(hname,"", xbin, xmin, xmax);
+      // char hname[500];
+      // sprintf(hname,"hph%d",j);
+      // hph[j] = new TH1F(hname,"", xbin, xmin, xmax);
       ph_max = 0.0;
       ph_max_bin = 1;
       for(int k=0 ; k<n ; k++){
@@ -225,10 +281,16 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
 	}
       }
       
+
+      ti_filling_2 = high_resolution_clock::now();      
+
       // ---- Weighted time calculation  ----- //
       double temp100=0.0, temp200=0.0;
       int tempbin = 0;
       double tempn   = 0;
+
+      ti_Weight1 = high_resolution_clock::now();
+
       for(int k=0 ; k<nbin_wtime ; k++){
 	tempbin = k - nbin_wtime/2 + ph_max_bin;
 	if(0<tempbin && tempbin<n){
@@ -240,18 +302,52 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
       }
       wtime[j] = temp100/temp200*4.0; // weighted time (ns)
       
+      ti_Weight2 = high_resolution_clock::now();
       // ----- Integrated charge ------- //
+
+      ti_Int1 = high_resolution_clock::now();
+
       intc[j] = (hph[j]->Integral(intrange_min,intrange_max))-pedch[j];
       intc_raw[j] = (hph[j]->Integral(intrange_min,intrange_max));
       hph[j]->Clear(); // reset 
+      ti_Int2 = high_resolution_clock::now();
+      
+      ti_calc_ch_2 = high_resolution_clock::now();      
     }
     //    std::cout <<"just before filling new tree!" << std::endl;
     tnew->Fill();
+
   }
 
+
+  high_resolution_clock::time_point ti_calc2 = high_resolution_clock::now();
+
   // ---- Write data and close the new ROOT file ---- //
+
+  std::cout << "checkpoint" << std::endl;
   tnew->Write();
   fnew->Close();
+
+  // auto duration = duration_cast<microseconds>( ti2 - ti1 ).count();
+
+  // auto dur_calc = duration_cast<microseconds>( ti_calc2 - ti_calc1 ).count();
+
+  // auto dur_calc_ch = duration_cast<microseconds>( ti_calc_ch_2 - ti_calc_ch_1 ).count();
+
+  high_resolution_clock::time_point ti_end = high_resolution_clock::now();
+
+  // auto dur_all = duration_cast<microseconds>( ti_end - ti_start ).count();
+
+  // auto dur_GE = duration_cast<microseconds>( ti_GE2 - ti_GE1 ).count();
+
+  // auto dur_weight = duration_cast<microseconds>( ti_Weight2 - ti_Weight1 ).count();
+
+  // auto dur_integrals = duration_cast<microseconds>( ti_Int2 - ti_Int1 ).count();
+
+  // auto dur_filling = duration_cast<microseconds>( ti_filling_2 - ti_filling_1 ).count();
+
+
+
 
   cout << endl;
   cout << " .x conv1_JW.cc(" << run << "): " << endl;
@@ -259,4 +355,21 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
        << fnew->GetName()
        << " has been created from "
        << f1->GetName() << endl;
+  // cout << " duration was " << duration << endl;
+  // cout << "calc function was " << dur_calc << endl;
+
+  // cout << "Function for just one channel (and one entry) took " << dur_calc_ch << ", as a fraction of overall fucntion = " << Double_t(dur_calc_ch)/dur_calc << endl;
+
+  // cout << "GetEntry took " << dur_GE << " as a part of calc_ch = " << Double_t(dur_GE)/dur_calc_ch << endl;
+  // cout << "Weight took " << dur_weight << " as a part of calc_ch = " << Double_t(dur_weight)/dur_calc_ch << endl;
+  // cout << "filling_egrals took " << dur_integrals << " as a part of calc_ch = " << Double_t(dur_integrals)/dur_calc_ch << endl;
+  // cout << " first filling of vectors and histograms took " << dur_filling << " as a part of calc_ch = " << Double_t(dur_filling)/dur_calc_ch << endl;
+ 
+
+
+  // cout << " overall macro was " << dur_all << endl;
+  // cout << "Portion of time in calculating funciton: " << Double_t(dur_calc)/dur_all << endl;
+
+
+  
 }

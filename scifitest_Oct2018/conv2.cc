@@ -5,6 +5,8 @@
   Toshiyuki Gogami, December 2, 2017
 */
 
+
+
 void conv2(int runnum = 46224624,
 	   int dataflag = 1)
 {
@@ -29,7 +31,7 @@ void conv2(int runnum = 46224624,
   // ====== Parameters and variable definitions ===== //
   // ================================================ //
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   const int nch = 64;   // The number of channels (16ch * 2)
   int nn[nch];          // The number of data which are really stored 
   //double time[nch][n];  // Time in ns
@@ -82,7 +84,9 @@ void conv2(int runnum = 46224624,
   // ===== ch-->NPE data ====== //
   // ========================== //
 
-  sprintf(tempc,"./singlePE/spe_%d.dat",run); 
+
+  // this line would be replaced 
+  sprintf(tempc,"./singlePE/spe_%d.dat",5115); 
   ifstream* ifs = new ifstream(tempc);
   double temp, ped[nch], spe[nch];
   int cha;

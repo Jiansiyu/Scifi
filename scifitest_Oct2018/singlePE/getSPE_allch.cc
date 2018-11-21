@@ -39,7 +39,7 @@ void getSPE_allch(int run  = 5049, Int_t channel = -1){
   // ============================== //
   // ======= Open ROOT file ======= //
   // ============================== //
-  Int_t n = 400; // fac window
+  Int_t n = 24; // fac window
 
 
   char inputfilename[500];
@@ -135,11 +135,11 @@ void getSPE_allch(int run  = 5049, Int_t channel = -1){
     func2->SetParameter(4, -0.05); func2->SetParLimits(4,-0.08,0.0);
     func2->FixParameter(5, func1->GetParameter(0));
     func2->SetParameter(6, func1->GetParameter(1));
-    func2->FixParameter(7, func1->GetParameter(2));
+    func2->SetParameter(7, func1->GetParameter(2));
     func2->FixParameter(8, pedmax);
 
-    pedsigma[ch]    = func2->GetParameter(6); 
-    pedsigma_er[ch] = func2->GetParError(6); 
+    pedsigma[ch]    = func2->GetParameter(7); 
+    pedsigma_er[ch] = func2->GetParError(7); 
 
     
     h1->Fit("func2","","",-1000.0, 3000.0); // took out NB in second param

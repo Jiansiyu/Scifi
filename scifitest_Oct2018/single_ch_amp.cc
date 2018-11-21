@@ -66,7 +66,7 @@ void  single_ch_amp(Int_t runnum=-1, Int_t channum = 0, Double_t ped_cut = 6500,
  
   Int_t nch = 64;
   //const Int_t n   = 74;
-  Int_t n = 400;
+  Int_t n = 24;
   //const Int_t n   = 400;
   
        

@@ -106,16 +106,16 @@ void channel_ped_track(Int_t run = -1, Int_t channum = 10, Double_t events = 100
   TFile* f1 = new TFile(fname);
   TTree* t1 = (TTree*)f1->Get("tree");
   double ent = t1->GetEntries();
-  //  ent = 10001;
-  ent = events;
+  ent = 10001;
+  //  ent = events;
 
   //set up tree branches (to read in)
 
-  double intc_raw[nch];     // Integrated raw charge
+  double intc[nch];     // Integrated raw charge
   int evID = 0;         // The number of event
 
 
-  t1->SetBranchAddress("intc_raw",  &intc_raw);
+  t1->SetBranchAddress("intc",  &intc);
   t1->SetBranchAddress("evID",  &evID);
 
 
@@ -298,9 +298,9 @@ void channel_ped_track(Int_t run = -1, Int_t channum = 10, Double_t events = 100
 
       }
       else{
-	h_raw[j]->SetBinContent(i+1,intc_raw[j]);
-	h_raw2D[j]->Fill(i+1,intc_raw[j],1);
-	h_ped_m[j]->Fill(intc_raw[j]);
+	h_raw[j]->SetBinContent(i+1,intc[j]);
+	h_raw2D[j]->Fill(i+1,intc[j],1);
+	h_ped_m[j]->Fill(intc[j]);
       }
 
       h_ave[j]->Add(h_raw[j]);
@@ -312,7 +312,7 @@ void channel_ped_track(Int_t run = -1, Int_t channum = 10, Double_t events = 100
     
       integrals = h_ave[j]->Integral(xmin+ (i%period)*period,xmax);
 
-      //      tot_int[j] += intc_raw[j];
+      //      tot_int[j] += intc[j];
 
       if( m_flag == 0 ){
 	    
@@ -320,7 +320,7 @@ void channel_ped_track(Int_t run = -1, Int_t channum = 10, Double_t events = 100
 
       }
       else{
-	tot_int[j] += intc_raw[j];
+	tot_int[j] += intc[j];
 
       }
 
@@ -331,7 +331,7 @@ void channel_ped_track(Int_t run = -1, Int_t channum = 10, Double_t events = 100
 	std::cout << " SetPoint(i/period-1, i+1, integrals/period) -> " << i/period << " -- " << i << " -- " << integrals/period << std::endl; 
 	
 
-	std::cout << " Raw int example : " << intc_raw[j] << std::endl;
+	std::cout << " Raw int example : " << intc[j] << std::endl;
 
 	std::cout << " simpler attempt at ped average : " << tot_int[j]/period << std::endl;
 

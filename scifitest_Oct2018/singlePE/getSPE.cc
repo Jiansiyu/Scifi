@@ -37,7 +37,7 @@ void getSPE(int anach = 0, int run  = 5049){
   // ============================== //
   // ===== General conditions ===== //
   // ============================== //
-  Int_t n = 400; // fac window
+  Int_t n = 24; // fac window
 
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);

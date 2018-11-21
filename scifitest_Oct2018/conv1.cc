@@ -7,6 +7,12 @@
   Toshiyuki Gogami, November 27, 2017
 */
 
+#include <iostream>
+#include <chrono>
+
+using namespace std;
+using namespace std::chrono;
+
 
 void conv1(int runnum = 4600, int dataflag = 0){
   // =================================== //
@@ -22,7 +28,7 @@ void conv1(int runnum = 4600, int dataflag = 0){
   int flag = dataflag;
   int run = runnum;
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 16;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 25; 
   const int nch = 64;   // The number of channels (16ch * 2)
@@ -46,6 +52,9 @@ void conv1(int runnum = 4600, int dataflag = 0){
   cout << " _________________________________________" << endl;
   cout << " Channel map, " << chmapdata << " is used." << endl;
   cout << " _________________________________________" << endl;
+
+  high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
   for(int i=0 ; i<nch ; i++){
     int ttemp, ttemp2;
     char ttempc[500];
@@ -53,6 +62,7 @@ void conv1(int runnum = 4600, int dataflag = 0){
     nscifi[i] = nscifi[i] - 1; // Subtraction by 1 because # starts from 1
   }
   ifs->close();
+  high_resolution_clock::time_point t2 = high_resolution_clock::now()
   
   // =============================== //
   // ====== Read pedestal data ===== //
@@ -248,10 +258,19 @@ void conv1(int runnum = 4600, int dataflag = 0){
   tnew->Write();
   fnew->Close();
 
+  auto duration = duration_cast<microseconds>( t2 - t1 ).count();
+
+
+
   cout << endl;
   cout << " .x conv1.cc(" << run << "): " << endl;
   cout << " "
        << fnew->GetName()
        << " has been created from "
        << f1->GetName() << endl;
+  cout << " duration was " << duration << endl;
+
+
+
+
 }
