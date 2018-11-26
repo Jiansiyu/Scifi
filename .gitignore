@@ -11,7 +11,6 @@
 *.so
 *.d
 
-
 scifitest_Oct2018/occupancy_JW.cc 
 scifitest_Oct2018/occupancy_orig.cc
 scifitest_Oct2018/x_distrib.xml
