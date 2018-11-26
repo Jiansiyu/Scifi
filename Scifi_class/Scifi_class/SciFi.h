@@ -10,7 +10,7 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 #include "THaNonTrackingDetector.h"
-#include "Fadc250Module.h"
+//#include "Fadc250Module.h"
 
 class TClonesArray;
 
@@ -21,13 +21,33 @@ public:
   SciFi(); // for ROOT I/O
   virtual ~SciFi();
 
+  void           ClearEvent();
   virtual void       Clear( Option_t* ="" );
   virtual Int_t      Decode( const THaEvData& );
   virtual Int_t      CoarseProcess( TClonesArray& tracks );
   virtual Int_t      FineProcess( TClonesArray& tracks );
-          Float_t    GetAsum() const { return fASUM_c; }
+  Float_t    GetAsum() const { return fASUM_c; }
+	  
+ protected:
 
-protected:
+  // Simple and quick routine to clear most vectors (of integers, floats,
+  // doubles, etc...)
+	  
+  template<class T>
+    void ResetVector(std::vector<T> &vec, T val = 0) {
+    for(size_t i = 0; i < vec.size(); i++) {
+      vec[i] = val;
+    }
+  }
+
+  template<class T>
+    void ResetVector(std::vector<std::vector<T> > &vec, T val = 0) {
+    for(size_t i = 0; i < vec.size(); i++) {
+      ResetVector(vec[i],val);
+    }
+  }
+
+  
 
   // Calibration
   /* Float_t*   fOff;        // [fNelem] TDC offsets (chan) */
@@ -62,9 +82,11 @@ protected:
   Int_t* funderflow;        //[fNelem] FADC underflowbit
   Int_t* fpedq;             //[fNelem] FADC pedestal quality bit
 
-  Decoder::Fadc250Module *fFADC;     //pointer to FADC250Module class
-  Int_t* fNhits;           //[fNelem] number of hits for each PMT
-
+  //  Decoder::Fadc250Module *fFADC;     //pointer to FADC250Module class
+  Int_t fNhits;           // Number of hits (taken from SBSHCal.h)
+  Int_t* fNhits_arr;           //[fNelem] number of hits for each PMT (taken from TriFadcCherenkov)
+  
+   
   // raw mode
   
   std::vector<Int_t>   fNumSamples; // [fNelem] Number of samples in each ADC/module

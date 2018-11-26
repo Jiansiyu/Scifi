@@ -24,7 +24,7 @@ LINKDEF = $(PACKAGE)_LinkDef.h
 export WITH_DEBUG = 1
 
 # Compile debug version
-#export DEBUG = 1
+export DEBUG = 1
 
 #------------------------------------------------------------------------------
 # Directory locations. All we need to know is INCDIRS.
@@ -65,7 +65,6 @@ INCLUDES      = $(addprefix -I, $(INCDIRS) ) -I$(shell pwd)
 
 USERLIB       = lib$(PACKAGE).so
 USERDICT      = $(PACKAGE)Dict
-
 LIBS          =
 GLIBS         =
 

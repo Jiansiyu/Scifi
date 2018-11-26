@@ -23,7 +23,35 @@
 #include "Scifi_class/SciFi.h"
 #include "Scifi_class/THaHRS.h" // some kind of arm...
 
-void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 1){
+ void replay_Scifi_test(Int_t runnum = -1, Int_t lastEvent = 10000, Bool_t mflag = 0){
+
+
+  if ( runnum == -1 ){
+
+    char answer[100]  = "filler";
+
+    std::cout << ".x replay_Scifi_test( #runnum, #lastEvent(def=10000), #mflag(0)" << std::endl;
+    std::cout << "Do you want description of macro? (y/n)" << std::endl;
+    std::cin >> answer;
+
+    
+    while(true){
+      
+      if(answer[0] == 'n'){
+	  return 1;
+      }
+      else if(answer[0] == 'y'){
+	  
+	std::cout << " Replay script for lab bench set-up in EEL 122 for testing of SciFi Detector.  #runnum is the choice of run number. #lastevent is the last event o be replayhed. #mflag is a flag controlling if the data is raw mode (0) or pulse mode (1)." << std::endl;
+	  return 1;
+	}
+	else{
+	  std::cout << "Do you want description of macro? (y/n)" << std::endl;
+	  std::cin >> answer;
+	}
+	}
+    }
+
 
   //  gSystem->Load("libsbs.so");
   gSystem->Load("Scifi_class/libSciFi.so");
@@ -83,7 +111,22 @@ void replay_Scifi_test(Int_t runnum = 5049, Int_t lastEvent = 1){
   run->SetDate(TDatime());
 
   analyzer->SetVerbosity(0);
-  analyzer->SetOdefFile("output_SciFi_test.def");
+
+
+
+  if(mflag == 0){
+    analyzer->SetOdefFile("output_SciFi_test_raw.def");
+  }
+  else if(mflag == 1){
+    analyzer->SetOdefFile("output_SciFi_test_pulse.def");
+  }
+  else{
+    std::cout << "Error: mflag not set to 0 (raw mode) or 1 (pulse mode)" << std::endl;
+    
+    std::cout << "Defaulting to raw mode" << std::endl;
+    analyzer->SetOdefFile("output_SciFi_test_raw.def");
+  }
+
 
   // Define the analysis parameters
   analyzer->SetEvent( event );

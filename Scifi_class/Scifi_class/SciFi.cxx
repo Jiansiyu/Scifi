@@ -20,6 +20,8 @@
 #include <cstdio>
 #include <vector>
 #define MAX_FADC_SAMPLES 400 // Max number of samples allowed
+#include "Fadc250Module.h"
+
 
 using namespace std;
 using namespace Decoder;
@@ -27,16 +29,16 @@ using namespace Decoder;
 SciFi::SciFi( const char* name, const char* description, THaApparatus* apparatus )
 : THaNonTrackingDetector(name,description,apparatus), fPed(0), fGain(0), fA(0),
   fAHits(0), fA_p(0), fA_c(0),fPeak(0),fT_FADC(0),fT_FADC_c(0),
-  foverflow(0), funderflow(0),fpedq(0), fNhits(0)
+  foverflow(0), funderflow(0),fpedq(0), fNhits(0), fNhits_arr(0)
 {
   // Constructor
-  fFADC=NULL;
+//  fFADC=NULL;
 }
 
 //_____________________________________________________________________________
 SciFi::SciFi()
 : THaNonTrackingDetector(), fPed(0), fGain(0), fA(0), fAHits(0),
-  fA_p(0), fA_c(0),fPeak(0),foverflow(0), funderflow(0),fpedq(0),fNhits(0)
+  fA_p(0), fA_c(0),fPeak(0),foverflow(0), funderflow(0),fpedq(0),fNhits(0), fNhits_arr(0)
 {
   // Default constructor (for ROOT I/O)
 }
@@ -142,9 +144,9 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
     foverflow  = new Int_t[ nval ]; 
     funderflow = new Int_t[ nval ];
     fpedq      = new Int_t[ nval ];
-    fNhits     = new Int_t[ nval ];
+    fNhits_arr     = new Int_t[ nval ];
 
-    fIsInit = true;
+    //fIsInit = true;
   }
 
   // Read calibration parameters
@@ -182,6 +184,60 @@ Int_t SciFi::ReadDatabase( const TDatime& date )
   if( err )
     return err;
 
+
+  if( !fIsInit ) {
+    // Compute block positions and creates blocks array
+    //    fBlkGrid.clear();
+    //    fBlkGrid.resize(fNrows);
+    //    for (int i=0;i<fNrows;i++) fBlkGrid[i].resize(fNcols);
+    //2//fClusters = new SBSHCalCluster*[fMaxNClust];
+    // fBlocks.clear();
+    // fBlocks.resize(fNelem);
+    fASamples.resize(fNelem);
+    fASamplesPed.resize(fNelem);
+    fASamplesCal.resize(fNelem);
+    fNumSamples.resize(fNelem);
+    for(Int_t i = 0; i < fNelem; i++) {
+      // We'll resize the vector now to make sure the data are contained
+      // in a contigous part of memory (needed by THaOutput when writing
+      // to the ROOT file)
+      fASamples[i].resize(MAX_FADC_SAMPLES);
+      fASamplesPed[i].resize(MAX_FADC_SAMPLES);
+      fASamplesCal[i].resize(MAX_FADC_SAMPLES);
+      //      std::cout << "check for resizing" << std::endl;
+
+    }
+    fBsum.resize(fNelem); // MAPC
+    // Yup, hard-coded in because it's only a test
+    // TODO: Fix me, don't hard code it in
+    //    fMaxNClust = 9;
+    //    fE = new Float_t[UInt_t(fMaxNClust)];
+    //    fE_c = new Float_t[UInt_t(fMaxNClust)];
+    //    fX = new Float_t[UInt_t(fMaxNClust)];
+    // fY = new Float_t[UInt_t(fMaxNClust)];
+    // fMult = new Int_t[UInt_t(fMaxNClust)];
+
+    // fNblk = new Int_t[UInt_t(fNclublk)];
+    // fEblk = new Float_t[UInt_t(fNclublk)];
+
+    // for( int r=0; r<nrows; r++ ) {
+    //   for( int c=0; c<ncols; c++ ) {
+    //     int k = nrows*c + r;
+    //     Float_t x = xy[0] + r*dxy[0];
+    //     Float_t y = xy[1] + r*dxy[1];
+    //     SBSShowerBlock* block = 
+    //       new SBSShowerBlock(x,y,fPed[k],fGain[k],r,c);
+    //     fBlocks[k]=block;
+    //     fBlkGrid[r][c]=fBlocks[k];
+    //   }
+
+    std::cout << " process happened !!!!!!!!!!!!!!!!!!! " << std::endl;
+
+  
+  fIsInit = true;
+  }
+
+
   return kOK;
 }
 
@@ -198,26 +254,30 @@ Int_t SciFi::DefineVariables( EMode mode )
     // { "nahit",  "Number of Right paddles TDC times", "fNAhit" },
     // { "t",      "TDC values",                        "fT" },
     // { "t_c",    "Corrected TDC values",              "fT_c" },
-    { "a_hitperchannel", "hits per chanel", "fhitsperchannel"},
-    { "a",      "ADC values",                        "fA" },
-    { "a_AHits",      "Number of hits in an ADC",     "fAHits" },
-    { "a_p",    "Ped-subtracted ADC values ",        "fA_p" },
-    { "a_c",    "Corrected ADC values",              "fA_c" },
+    { "A_hitperchannel", "hits per chanel", "fhitsperchannel"},
+    { "A",      "ADC values",                        "fA" },
+    { "A_AHits",      "Number of hits in an ADC",     "fAHits" },
+    { "A_p",    "Ped-subtracted ADC values ",        "fA_p" },
+    { "A_c",    "Corrected ADC values",              "fA_c" },
     { "peak",   "FADC ADC peak values",              "fPeak" },
     { "t_fadc", "FADC TDC values",                   "fT_FADC" },
     { "tc_fadc", "FADC corrected TDC values",        "fT_FADC_c" },
-    { "asum_p", "Sum of ADC minus pedestal values",  "fASUM_p" },
-    { "asum_c", "Sum of corrected ADC amplitudes",   "fASUM_c" },
+    { "Asum_p", "Sum of ADC minus pedestal values",  "fASUM_p" },
+    { "Asum_c", "Sum of corrected ADC amplitudes",   "fASUM_c" },
     { "trx",    "x-position of track in det plane",  "fTrackProj.THaTrackProj.fX" },
     { "try",    "y-position of track in det plane",  "fTrackProj.THaTrackProj.fY" },
     { "trpath", "TRCS pathlen of track to det plane","fTrackProj.THaTrackProj.fPathl" },
     { "noverflow",  "overflow bit of FADC pulse",    "foverflow" },
     { "nunderflow",  "underflow bit of FADC pulse",  "funderflow" },
     { "nbadped",  "pedestal quality bit of FADC pulse",   "fpedq" },
+    { "nhits",  "Number of hits for each PMT",       "fNhits_arr" },
     { "nhits",  "Number of hits for each PMT",       "fNhits" },
     { 0 }
   };
-  return DefineVarsFromList( vars, mode );
+  //  return DefineVarsFromList( vars, mode );
+  Int_t err = DefineVarsFromList(vars, mode);
+  if( err != kOK )
+    return err;
 
   // raw mode pulse data variables
 
@@ -227,9 +287,9 @@ Int_t SciFi::DefineVariables( EMode mode )
     char *name   =  new char[128];
     char *name_p = new char[128];
     char *name_c = new char[128];
-    sprintf(name,"a.raw%.2d",m);
-    sprintf(name_p,"a_p.m%d",m);
-    sprintf(name_c,"a_c.m%d",m);
+    sprintf(name,"a_raw%.2d",m);
+    sprintf(name_p,"a_p_m%d",m);
+    sprintf(name_c,"a_c_m%d",m);
     char *desc = new char[256];
     sprintf(desc,"Raw ADC samples for Module %d",m);
     v.name = name;
@@ -252,6 +312,7 @@ Int_t SciFi::DefineVariables( EMode mode )
   return DefineVarsFromList( vars2.data(), mode );
 
 
+
 }
 
 //_____________________________________________________________________________
@@ -263,7 +324,7 @@ SciFi::~SciFi()
     RemoveVariables();
   if( fIsInit )
     DeleteArrays();
-  fFADC=NULL;
+  //  fFADC=NULL;
 }
 
 //_____________________________________________________________________________
@@ -289,7 +350,7 @@ void SciFi::DeleteArrays()
   delete [] foverflow;  foverflow  = NULL;
   delete [] funderflow; funderflow = NULL;
   delete [] fpedq;      fpedq      = NULL;
-  delete [] fNhits;     fNhits     = NULL;
+  delete [] fNhits_arr;     fNhits_arr     = NULL;
 
   //  delete []
 }
@@ -320,10 +381,55 @@ void SciFi::Clear( Option_t* opt )
     memset( foverflow, 0, fNelem*sizeof(foverflow[0]) );
     memset( funderflow, 0, fNelem*sizeof(funderflow[0]) );
     memset( fpedq, 0, fNelem*sizeof(fpedq[0]) );
-    memset( fNhits, 0, fNelem*sizeof(fNhits[0]) );
+    memset( fNhits_arr, 0, fNelem*sizeof(fNhits_arr[0]) );
     memset( fAHits, 0, fNelem*sizeof(fAHits[0]) );
   }
 }
+
+//_____________________________________________________________________________
+inline
+void SciFi::ClearEvent()
+{
+  // Reset all local data to prepare for next event.
+  ResetVector(fNumSamples,0);
+  ResetVector(fASamples, 0.0);
+  ResetVector(fASamplesPed,0.0);
+  ResetVector(fASamplesCal,0.0);
+
+    // fCoarseProcessed = 0;
+    // fFineProcessed = 0;
+
+  //    const int lsh = fNelem*sizeof(Float_t);
+    // const int lshh = fMaxNClust*sizeof(Float_t);
+    // const int lsc = fNclublk*sizeof(Float_t);
+    // const int lsi = fNclublk*sizeof(Int_t);
+    // const int lsj = fMaxNClust*sizeof(Int_t);
+
+    fNhits = 0;
+    // memset( fE, 0, lshh );
+    // memset( fE_c, 0, lshh );
+    // memset( fX, 0, lshh );
+    // memset( fY, 0, lshh );
+    //memset( fXtarg, 0, lshh );
+    //memset( fYtarg, 0, lshh );
+    //memset( fZtarg, 0, lshh );
+    //    memset( fMult, 0, lsj );
+    fASUM_p = 0.0;
+    fASUM_c = 0.0;
+    //    fNclust = 0;
+    // memset( fNblk, 0, lsi );
+    // memset( fEblk, 0, lsc );
+    // fTRX = 0.0;
+    // fTRY = 0.0;
+  
+    for(size_t i=0; i<fBsum.size(); i++) fBsum[i] = 0.0; // MAPC
+
+    //2//for (int i=0;i<fNelem;i++) 
+        //2//fBlocks[i]->ClearEvent();
+
+}
+
+
 
 //_____________________________________________________________________________
 Int_t SciFi::Decode( const THaEvData& evdata )
@@ -341,7 +447,7 @@ Int_t SciFi::Decode( const THaEvData& evdata )
   Int_t mode, num_events, num_samples;
   Bool_t raw_mode = kFALSE;
   
-
+  ClearEvent();
 
   for( Int_t i = 0; i < fDetMap->GetSize(); i++ ) {
 
@@ -360,7 +466,11 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
     
     // change: removed if condition for fadc (should be only thing present)
-    fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
+    
+    Decoder::Module *m = evdata.GetModule(d->crate,d->slot);
+
+    //    Decoder::Fadc250Module *fFADC = dynamic_cast <Fadc250Module*> (evdata.GetModule(d->crate, d->slot));
+    Decoder::Fadc250Module *fFADC = dynamic_cast<Decoder::Fadc250Module*>(m);
 
     mode = fFADC->GetFadcMode();
 
@@ -370,6 +480,9 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 
     // Loop over all channels that have a hit.
     for( Int_t j = 0; j < evdata.GetNumChan( d->crate, d->slot ); j++) {
+
+      fNhits++;
+
 
       Int_t chan = evdata.GetNextChan( d->crate, d->slot, j );
       if( chan < d->lo || chan > d->hi ) continue;     // Not one of my channels
@@ -409,8 +522,8 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 	fpeak = evdata.GetData(kPulsePeak,d->crate,d->slot,chan,0);
 	// }
 	// else{ 
-	fNhits[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
-	// 	data = evdata.GetData( d->crate, d->slot, chan, fNhits[k]-1 );
+	//	fNhits_arr[k]=evdata.GetNumHits(d->crate, d->slot, chan);     
+	// 	data = evdata.GetData( d->crate, d->slot, chan, fNhits_arr[k]-1 );
 	// }
 	
 	// if(adec){
@@ -506,25 +619,25 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 	//  Int_t k = d->first + ((d->reverse) ? d->hi - chan : chan - d->lo);	
 	
 	std::cout << "Entered raw mode" << std::endl;
-
-
+	
+	
 	num_events = fFADC->GetNumFadcEvents(chan);
 	
 	std::cout << "First Check " << std::endl;
 	
 	num_samples = fFADC->GetNumFadcSamples(chan,0);
 
-	std::cout << "2nd Check " << std::endl;
-
+	std::cout << "2nd Check: num_samples =  " << std::endl;
+	
 	if(num_samples > MAX_FADC_SAMPLES || num_samples < 0) {
 	  Error( Here(here),
 		 "Too manu samples in fFADC: %d out of %d MAX",num_samples,
-	       MAX_FADC_SAMPLES);
+		 MAX_FADC_SAMPLES);
 	} else {
 	  
-	  std::cout << "Bonus Check " << std::endl;
-	  Double_t John =  fNumSamples[1];
-
+	  ///	  std::cout << "Bonus Check " << std::endl;
+	  //	  Double_t John =  fNumSamples[1];
+	  
 	  std::cout << "3rd Check " << std::endl;
 	  fNumSamples[k] = num_samples;
 	  std::cout << "4th Check " << std::endl;
@@ -532,20 +645,27 @@ Int_t SciFi::Decode( const THaEvData& evdata )
 	  std::cout << "5th Check " << std::endl;
 	  for(Int_t s = 0; s < num_samples; s++) {
 	  //cout << samples[s] << endl;
+	    //	    std::cout << "In-loop Check " << std::endl;
 	    fASamples[k][s] = samples[s];
+	    // std::cout << " fASamples[k][s] = " << "fASamples[" << k << "][" << s << "] = sample[s] = " << samples[s] << std::endl;
+	    //	    std::cout << " fASamples[k][s] = " <<  fASamples[k][s] << std::endl;	    
 	    fASamplesPed[k][s] = fASamples[k][s]-fPed[k];
 	    fASamplesCal[k][s] = fASamplesPed[k][s]*fGain[k];
 	    fBsum[k] += samples[s];
+	    //	    std::cout << " fASamples[k][s] = " << "fASamples[" << k << "][" << s << "] = " << fASamplesCal[k][s] << std::endl;
+	    
 	  }
+	  std::cout << "6th Check " << std::endl;
 	}
       }
       
     }
   }
-
-    return noevents;
-    // return fNThit;
-    //  return fNAhit++;
+  
+  std::cout << "End of decoding " << noevents <<  std::endl;
+  return noevents;
+  // return fNThit;
+  //  return fNAhit++;
 }
 
 //_____________________________________________________________________________
