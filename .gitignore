@@ -6,6 +6,10 @@
 *#
 /scifitest_Oct2018/*.pdf
 /scifitest_Oct2018/*.png
+*Dict
+*.pcm
+*.so
+*.d
 
 
 scifitest_Oct2018/occupancy_JW.cc 
