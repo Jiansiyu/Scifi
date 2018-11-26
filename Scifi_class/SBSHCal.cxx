@@ -443,14 +443,13 @@ Int_t SBSHCal::Decode( const THaEvData& evdata )
 
       // Is this module an FADC?
       if(isADC) {
-        // Get the mode, number of events and number of samples from
+        // Get the mode, nu ber of events and number of samples from
         // the event data.
         //   (jc2) We can probably later specify just a fixed number of samples
         //   (perhaps in the DB itself) if this proves too slow.
         Int_t mode, num_events, num_samples;
         Bool_t raw_mode = kFALSE;
 	//cout << "aaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << endl;
-
         mode = fadc->GetFadcMode();
 //cout << mode << endl;
         raw_mode = (mode == 1) || (mode == 8) || (mode == 10);
@@ -473,7 +472,7 @@ Int_t SBSHCal::Decode( const THaEvData& evdata )
               fASamplesCal[k][s] = fASamplesPed[k][s]*fGain[k];
               fBsum[k] += samples[s];
             }
-          }
+	  }
         }
       }
     }
