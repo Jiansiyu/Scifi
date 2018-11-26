@@ -3,14 +3,14 @@
   
   Toshiyuki Gogami, November 27, 2017
 */
-void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 530){
+void pshape_allch_histo(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150, Int_t chan = 0, Double_t peak_time = 50){
 
 
   if ( runnum == -1 ){
 
     char answer[100]  = "filler";
 
-    std::cout << ".x pshape_allch_histo(#run, #cut(def=150), #peak_time(def=530))" << std::endl;
+    std::cout << ".x pshape_allch_histo(#run, #cflag = 0, #cut(def=150), #peak_time(def=530))" << std::endl;
     std::cout << "Do you want description of macro? (y/n)" << std::endl;
     std::cin >> answer;
 
@@ -22,7 +22,7 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
       }
       else if(answer[0] == 'y'){
 	  
-	std::cout << " Goes though all channels for #run, and produces histograms of: " << "\n" << "    c1: hits for each channel" << "\n" << "    c2: x-distribution of hits" << "\n" << "    c3: y-distribution of hits" << "\n" << "\n" << "Macro defines 'hit' by pulse in channel having integral above #cut in region around #peak_time. " << std::endl;
+	std::cout << " Goes though all channels for #run, and produces histograms of: " << "\n" << "    c1: hits for each channel" << "\n" << "    c2: x-distribution of hits" << "\n" << "    c3: y-distribution of hits" << "\n" << "\n" << " If cflag = 0 then macro defines 'hit' by pulse in channel having integral above #cut in region around #peak_time. " << "\n" << "If cflag = 1 then macro cuts events based on npe of event being higher than a threshold" << std::endl;
 	  return 1;
 	}
 	else{
@@ -45,7 +45,7 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
   
   const int nch = 64;
   //const int n   = 74;
-  const int n   = 400;
+  const int n   = 24;
   //const int n   = 400;
 
   int evID;
@@ -76,7 +76,7 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
   t2->SetBranchAddress("npe", &npe);
   
   // state npe threshold
-  Double_t npe_th = 5.0;
+  Double_t npe_th = 8.0;
 
   double ent = t1->GetEntries();
  // ------ The number of events analyzed ------
@@ -94,7 +94,13 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
   char htitle[500];
   sprintf(htitle,"Integral around %f ns",peak_time);
 
-  TH1* hint = new TH1F("hint",htitle,1000,-100,600);
+  TH1* hint = new TH1F("hint",htitle,64,-100,2500);
+
+  TH1* hchan[9];
+
+  
+
+
 
   // added lines to get hitograms vs x and y 
 
@@ -172,10 +178,10 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
   TH1* pix_hist = new TH1F("chan_hits (pixel)","hits in pixels",nch,0,nch);
   pix_hist->GetXaxis()->SetTitle("Pixel number");
   
-  TH1* hist_x = new TH1F("x-hits","X distributiton",nch/2,0,length);
-  TH1* hist_y = new TH1F("y-hist","Y distributiton",nch/2,0,length);
-  hist_x->GetXaxis()->SetTitle("X (mm)");
-  hist_y->GetXaxis()->SetTitle("Y (mm)");  
+  TH1* hist_x = new TH1F("x-hits","X distributiton",nch/2,0,nch/2);
+  TH1* hist_y = new TH1F("y-hist","Y distributiton",nch/2,0,nch/2);
+  hist_x->GetXaxis()->SetTitle("X");
+  hist_y->GetXaxis()->SetTitle("Y");  
   
   // count total hits for each channel
   Int_t total[nch] = {0};
@@ -189,10 +195,32 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
   
   Double_t small_integral = 0;
 
+
+
+
   for(int i=0 ; i<ent ; i++){
     t1->GetEntry(i);
     t2->GetEntry(i);
     condition = false;
+
+    
+    // for(int k=0 ; k<nch ; k++){
+
+    //   char hname[500]
+    // 	if( k == channel){
+	  
+    // 	  for(n = 0; n <4; n++){
+	    
+	    
+	    
+    // 	    hchan[i]->Clone("hint");
+	    
+    // 	    sprintf(hname,"hchan_%d",i);
+	    
+
+    // 	  }
+    // 	}
+    // }
 
     for(int k=0 ; k<nch ; k++){
       offset = func1[k]->GetParameter(0);
@@ -219,19 +247,37 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
       }
 
       small_integral = h->Integral( (peak_time/4)-5, (peak_time/4) +5);
-      
+
+
+
       hint->Fill(small_integral);
+
+
 
       // if( small_integral > cut){
       // 	condition = true;
       // }
 
-      if(npe[k]>npe_th){
-      	condition = true;
-
-	total[k]++;
+      // condition based off cuts on integral around peak
+      if(cflag == 0){
+	if( small_integral > cut){
+	  condition = true;
+	  total[k]++;
+	  std::cout << "this conidtion" << std::endl;
+	}
       }
 
+      // condition based on cut on npe: number of photoelectrons
+      else if(cflag != 0){
+	if(npe[k]>npe_th){
+	  condition = true;
+	  
+	  total[k]++;
+	}
+      }
+      else{
+	std::cout << "incorrect flag, cflag must equal 0 (integral-based cut) or 1 (npe based cut) " << std::endl;
+      }
 
       //      std::cout << " small integral is: " << small_integral << std::endl;
 
@@ -245,14 +291,15 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
 	
 	if(hitfiber<32){
 
-	  hist_x->Fill(hitfiber*length/32.);
+	  // hist_x->Fill(hitfiber*length/32.);
+	  hist_x->Fill(hitfiber*1.);
 	  std::cout << " x-hit " << std::endl;
 
 	  std::cout << " fill with value of hitfiber*length/32. = " << hitfiber*length/32. << std::endl;
 
 	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k << ", npe = " << npe[k] << ::endl;
 
-
+	 
 
 	}
 	if(hitfiber<64 && hitfiber>31){
@@ -260,7 +307,10 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
 
 	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k  << ", npe = " << npe[k] << ::endl;
 
-	  hist_y->Fill((hitfiber-32)*(length/32));
+	  // hist_y->Fill((hitfiber-32)*(length/32));
+	  hist_y->Fill((hitfiber-32)*(1));
+
+	 
 
 	} 
 
@@ -306,21 +356,44 @@ void pshape_allch_histo(int runnum=-1, Double_t cut = 150, Double_t peak_time = 
 
 
   c5->cd(0);
+  c5->SetLogy();
   hint->Draw();
   
+  // bool to say fiber is x or y
+  Bool_t x = false;
+
   for(Int_t k = 0; k<nch; k++){
 
 
-
-    if(total[k] > 100){
-      std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fiber number = " <<  nscifi[k] << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
+    if(nscifi[k]<32){
+      x = true;
     }
     else{
-      std::cout << "total[k] = " << total[k] << std::endl;
+      x = false;
     }
-
-
-
+    
+    if (x){
+      
+      if(total[k] > 100){
+	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fiber number = " <<  nscifi[k] << " and x = " << nscifi[k] + 1   << " (1-32),   (" <<  (nscifi[k])*0.15 << " inches)"<<  "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
+      }
+      
+    }
+    else if (!x){
+      if(total[k] > 100){
+	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fiber number = " <<  nscifi[k] << " and y = " << nscifi[k] - 32 + 1 << " (1-32),   (" <<  (nscifi[k] - 32)*0.15 << " inches)"  <<  "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
+      }
+      
+      
+    }
+    
+    
+  else{
+    std::cout << "total[k] = " << total[k] << std::endl;
   }
+    
 
+    
+  }
+  
 }

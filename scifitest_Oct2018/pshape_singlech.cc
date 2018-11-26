@@ -74,10 +74,12 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   
   Int_t nch = 64;
   //const Int_t n   = 74;
-  const Int_t n = 400;
+  const Int_t n = 24;
   //const Int_t n   = 400;
   
        
+  std::cout << " Min int = " << min_int << std::endl;
+
   // ========================== //
   // ==== Open ROOT file ====== //
   // ========================== //
@@ -100,6 +102,7 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   t1->SetBranchAddress("time",  &time);
   t1->SetBranchAddress("ph",    &ph);
   Double_t ent = t1->GetEntries();
+
   //  ent = 30; // ------ The number of evnets analyzed ------
 
 
@@ -134,6 +137,8 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
   //c0->Divide(8,4);
   //c0->cd();
   //htmp = (TH1F*)haccum[0]->Clone("htmp");
+  std::cout << " Min int = " << min_int << std::endl;
+
   for(Int_t i=0 ; i<nite ; i++){
     t1->GetEntry(i);
     for(Int_t k=0 ; k<n ; k++){
@@ -143,7 +148,11 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
     haccum->Add(htmp);
   }
 
+  // where mint_int is multiplied/ changed
+  std::cout << " Min int = " << min_int << std::endl;
   
+  min_int = 20;
+
   haccum->Scale(1./nite);
   //sprintf(hname,"haccum_%d",i);
   haccum->Fit(fname,"Nq","",0.0,xmax);
@@ -203,12 +212,16 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
     
 
 
-    intc = htmp->Integral( (530/4)-5, (530/4)+4 );
+    intc = htmp->Integral( 0, n );
     
     //    min_int = 15*(n/24.);
-    min_int = 70;
+
+    //    min_int = 70;
+    Int_t minimum_int  = 300;
 
     std::cout << " integral managed, intc = " << intc <<  ", min_int = " << min_int  << std::endl;
+
+
     c1->cd(0);
     htmp->Draw();
   
@@ -221,10 +234,12 @@ void pshape_singlech(Int_t runnum=-1, Int_t channum = 0, Int_t min_int = 200, In
     //std::cout << ch << ": "  << i+1<< std::endl;
     //h->Draw();
 
-    if ( intc > min_int){
+    minimum_int  = 300;
+
+    if ( intc > minimum_int){
 
 
-      std::cout << "event # " << i << ", integral above ped :" << intc << ", peak time (ns): " << peak_t<< std::endl;
+      std::cout << "event # " << i << ", integral above ped :" << intc << ", peak time (ns): " << peak_t << std::endl;
 
       c1->Update();
       c1->WaitPrimitive();

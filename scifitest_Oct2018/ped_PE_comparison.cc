@@ -65,7 +65,7 @@ void ped_PE_comparison(Int_t run_f = -1, Int_t run_l =  5049, Int_t channum = 0)
   Double_t ped_mean[nch];
   Double_t RMS_mean[nch];
 
-  
+  Bool_t zero_ped[nch][no_runs];
 
   TH1F* h_peds[nch];
   TH1F* h_ped_m[nch];
@@ -136,27 +136,31 @@ void ped_PE_comparison(Int_t run_f = -1, Int_t run_l =  5049, Int_t channum = 0)
  }
 
 
-  for(Int_t i = 0; i < nch; i++){
+  // for(Int_t i = 0; i < nch; i++){
 
 
-    gr1_m[i] = new TGraph(no_of_runs);
-    gr1_m2[i] = new TGraph(no_of_runs);
+  //   gr1_m[i] = new TGraph(no_of_runs);
+  //   gr1_m2[i] = new TGraph(no_of_runs);
 
-    gr1_m[i]->GetXaxis()->SetTitle("Run number");
-    gr1_m[i]->GetYaxis()->SetTitle("Raw difference");
-    gr1_m[i]->SetMaximum(200);
-    gr1_m[i]->SetMinimum(-200);
+  //   gr1_m[i]->GetXaxis()->SetTitle("Run number");
+  //   gr1_m[i]->GetYaxis()->SetTitle("Raw difference");
+  //   gr1_m[i]->SetMaximum(200);
+  //   gr1_m[i]->SetMinimum(-200);
 
-    gr1_m2[i]->GetXaxis()->SetTitle("Run number");
-    gr1_m2[i]->GetYaxis()->SetTitle("Percentage difference");;
-    gr1_m2[i]->SetMaximum(3);
-    gr1_m2[i]->SetMinimum(-3);
+  //   gr1_m2[i]->GetXaxis()->SetTitle("Run number");
+  //   gr1_m2[i]->GetYaxis()->SetTitle("Percentage difference");;
+  //   gr1_m2[i]->SetMaximum(3);
+  //   gr1_m2[i]->SetMinimum(-3);
 
 
-  }
+  // }
 
 
   // loop fills histograms and graphs
+
+
+  // keep track of number of zero_peds 
+  Int_t zero_peds_no = 0;
 
   for(Int_t i = 0; i< no_runs; i++){
 
@@ -181,13 +185,34 @@ void ped_PE_comparison(Int_t run_f = -1, Int_t run_l =  5049, Int_t channum = 0)
       *ifs >> chan[j][i] >> pedestals[j][i] >> RMS[j][i];
 
 
-      h_peds[j]->SetBinContent(i+1,pedestals[j][i]);
+      //      h_peds[j]->SetBinContent(i+1,pedestals[j][i]);
 
-      RMS_tot[j] += RMS[j][i];
+      //      RMS_tot[j] += RMS[j][i];
       ped_tot[j] += pedestals[j][i];
 
       // FILL GRAPHS HERE 
       // can use setpoint to do this
+
+      zero_ped[j][i] = false;
+
+      if (pedestals[j][i] == 0){
+
+	//	zero_peds_no++;
+	zero_ped[j][i] = true;
+	
+	
+	// only counting for displayed channel
+	if (j == channum){
+	  zero_peds_no++;
+	}
+
+
+      }
+      else{
+
+      RMS_tot[j] += RMS[j][i];
+      
+      }
 
      
 
@@ -202,10 +227,34 @@ void ped_PE_comparison(Int_t run_f = -1, Int_t run_l =  5049, Int_t channum = 0)
 
   //  std::cout << " No of runs are " << no_of_runs << std::endl;
 
+
+
+  for(Int_t i = 0; i < nch; i++){
+
+
+    gr1_m[i] = new TGraph(no_of_runs -  zero_peds_no);
+    gr1_m2[i] = new TGraph(no_of_runs - zero_peds_no);
+
+    gr1_m[i]->GetXaxis()->SetTitle("Run number");
+    gr1_m[i]->GetYaxis()->SetTitle("Raw difference");
+    gr1_m[i]->SetMaximum(200);
+    gr1_m[i]->SetMinimum(-200);
+
+    gr1_m2[i]->GetXaxis()->SetTitle("Run number");
+    gr1_m2[i]->GetYaxis()->SetTitle("Percentage difference");;
+    gr1_m2[i]->SetMaximum(3);
+    gr1_m2[i]->SetMinimum(-3);
+
+
+  }
+
+
+
+
   for (Int_t j=0; j<nch; j++){
 
-    ped_mean[j] = ped_tot[j]/ double(no_of_runs);
-    RMS_mean[j] = RMS_tot[j]/ double(no_of_runs);
+    ped_mean[j] = ped_tot[j]/ double(no_of_runs - zero_peds_no);
+    RMS_mean[j] = RMS_tot[j]/ double(no_of_runs - zero_peds_no);
   }
 
   Int_t counter = 0;
@@ -219,21 +268,26 @@ void ped_PE_comparison(Int_t run_f = -1, Int_t run_l =  5049, Int_t channum = 0)
 	sprintf(fname,"./ped_integrals/pedestal_%d.dat",i+run_f);
 	if ( fexists(fname) ){
 	  
-
-	  h_ped_m[j]->SetBinContent(i+1, pedestals[j][i] - ped_mean[j]);
-	  h_ped_m2[j]->SetBinContent(i+1, (100 * (pedestals[j][i] - ped_mean[j])/ ped_mean[j])  );
 	  
-	  gr1_m[j]->SetPoint(counter, i + run_f,  pedestals[j][i] - ped_mean[j]);
-	  gr1_m2[j]->SetPoint(counter, i + run_f,(100 * (pedestals[j][i] - ped_mean[j])/ ped_mean[j]) );
+	  if(zero_ped[j][i] == false){
 
-	  counter++;
+	    h_peds[j]->SetBinContent(i+1,pedestals[j][i]);
+
+	    h_ped_m[j]->SetBinContent(i+1, pedestals[j][i] - ped_mean[j]);
+	    h_ped_m2[j]->SetBinContent(i+1, (100 * (pedestals[j][i] - ped_mean[j])/ ped_mean[j])  );
+	  
+	    gr1_m[j]->SetPoint(counter, i + run_f,  pedestals[j][i] - ped_mean[j]);
+	    gr1_m2[j]->SetPoint(counter, i + run_f,(100 * (pedestals[j][i] - ped_mean[j])/ ped_mean[j]) );
+	    
+	    counter++;
+	  }
 
 	}
-
-      }
+	
+    }
   }
-
-    
+  
+  
   // TGraph* gr1_m[nch];
   // TGraph* gr1_m2[nch];
 
