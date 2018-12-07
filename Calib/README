@@ -1,0 +1,14 @@
+Quick desciption of what's in folders:
+
+Tyler_calib: has calorimeter calibration scripts for the LHRS and RHRS. Has nice diagrams of both detectors as well.
+
+MikeShower: has RHRS shower calib but older and less useful (only ADC_check.C might be worth looking at).
+
+hanjie: has calibration of Chernkov, scinitllators, raster, VDC and time
+	- should be looked over comprehensivley
+
+batch_ped_scan: scans ADCs for changes in pedestal over time
+
+Bane/Tri_offline/ped_scan/ (directory copied from)
+
+

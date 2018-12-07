@@ -1,0 +1,441 @@
+.x Track.C
+.qqqqqqqq
+.q
+.qqqqqqqq
+.x Track.C
+.q
+.x Track.C
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+/q
+.q
+/q
+.x Track.C
+.q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+,q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.L Track.C +
+.L Track.C+
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.qq.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.qqqq
+.x Track.C
+.qqq
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+/q
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.x Track.C
+.q
+.q
+.x Test.C
+.q
+.x Test.C
+/q
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x Track.C+g
+.q
+.x Track.C 
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+if (Lcer_sum >2000.0 && ((int) evtypebits>>2)&1 && (Lprl1_e+Lprl2_e)/(L_gold_p[0])/(1000.0)>0.8 && Ltg_th[0] > -0.05 && Ltg_th[0] <0.05 && Ltg_ph[0] > -0.03 && Ltg_ph[0] <0.03 && Ltg_y[0] > -0.\
+.@
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.q
+.x Track.C 
+.q
+.x Track.C 
+.q
+.x Test.C
+.q
+.q
+.x Test.C
+.q
+.x Test.C
+.q
+.x ADC_check.C
+.q
+.x ADC_check.C
+.q
+.x ADC_check.C
+.x ADC_check.C
+.q
+.x ADC_check.C
+.x ADC_check.C
+.q
+2023
+.x ADC_check.C
+.x Shower_plot.C
+.q
+.x Shower_1.C
+.q
+.L Shower_cuts.C
+.q
+.L Shower_cuts.C
+.q
+.x Shower_1.C
+.q
+.L Shower_1.C
+.L Shower_1.C
+.q
+.L Shower_1.C
+.L Shower_1.C
+.q
+.L Shower_1.C
+.q
+.L Shower_1.C
+.L Shower_1.C
+.q
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.
+.q
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.L Shower_1.C
+.q
+.L Shower_1.C
+.L Shower_1.C
+.x Shower_1.C
+.q
+.L Shower_1.C
+.x Shower_
+.x Shower_1.C
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.L Shower_1.C &
+.q
+.L Shower_1.C
+.q
+.L Shower_1.C
+.x Shower_1.C
+.q
+.L Shower_1.C
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.x Shower_1.C
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.x Shower_1.C
+.q
+.q
+.x Shower_1.C
+.q
+.L Shower_1.C 
+.q
+.L Shower_1.C 
+.x Shower_1.C 
+.q
+.x Shower_1.C 
+.q

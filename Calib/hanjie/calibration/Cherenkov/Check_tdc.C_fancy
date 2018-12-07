@@ -1,0 +1,125 @@
+#include "GetFile.h"
+void Check_tdc()
+{
+  int arm=-1; //LHRS: arm=0; RHRS: arm=1;
+  TString kin;
+  TChain* T=GetTree(arm,kin);
+
+  if(arm==-1){cout<<"Don't know which arm"<<endl;exit(0);}
+  int LHRS=0,RHRS=0;
+  if(arm==0)LHRS=1;
+  if(arm==1)RHRS=1;
+
+  ofstream myfile;
+  myfile.open("Rtdc_check.txt");//,fstream::app);
+
+
+     TCut trigger2,Ep,TRK;
+     if(LHRS){
+          trigger2 = "(DL.evtypebits>>2)&1";
+          Ep = "(L.prl1.e+L.prl2.e)/(1000*L.gold.p)>0.8";
+          TRK = "L.tr.n==1";
+      }
+
+     if(RHRS){
+          trigger2 = "(DR.evtypebits>>5)&1";
+          Ep = "(R.sh.e+R.ps.e)/(1000*R.gold.p)>0.8";
+          TRK = "R.tr.n==1";
+      }
+
+     TFile *f1;
+     if(LHRS) f1=new TFile("./results/LChecktdc_plots.root","RECREATE");
+     if(RHRS) f1=new TFile("./results/RChecktdc_plots.root","RECREATE");
+
+     TH1F *htdc[10];
+     TH1F *htdc_near[10];
+     Double_t pk1[10],pk2[10];
+     Double_t pk1_c[10],pk2_c[10];
+     Int_t binx_min=0,binx_max=0;
+     Int_t max_bin1=0,max_bin2=0;
+     TCut Acer5 = "R.cer.a_c[7]>1100";
+     TCanvas *c1 = new TCanvas("c1");
+     c1->Divide(5,2);
+     for(int ii=0;ii<10;ii++){
+	 c1->cd(ii+1);
+         htdc[ii] = new TH1F(Form("htdc%d",ii),Form("cer.t[%d]",ii),300,1700,2000);
+	 T->Draw(Form("R.cer.t[%d]>>htdc%d",ii,ii),TRK+trigger2+Ep);
+
+	 max_bin1 = htdc[ii]->GetMaximumBin();
+	 pk1[ii]=htdc[ii]->Integral(max_bin1-10,max_bin1+10);
+         
+         Double_t aa1=0,min_bin=0;
+	 Double_t Amin = htdc[ii]->GetBinContent(max_bin1);
+         //cout<<"111: "<<Amin<<endl;
+         for(int jj=1;jj<max_bin1;jj++){
+	     aa1 = htdc[ii]->GetBinContent(max_bin1-jj);
+             
+	     if(aa1<Amin)
+              {
+		min_bin = max_bin1-jj;
+		Amin = aa1;
+	  //	cout<<aa1<<endl;
+	      }
+             else break;
+          }
+	  //cout<<ii<<"  "<<min_bin<<endl;
+	  binx_min = htdc[ii]->GetXaxis()->FindBin(1860);
+	 if(min_bin<binx_min){
+	    cout<<"PMT "<<ii<<" doesn't have second TDC peak"<<endl;
+	    continue;
+	 }
+	 else{
+		htdc[ii]->GetXaxis()->SetRange(binx_min,min_bin);
+		max_bin2 = htdc[ii]->GetMaximumBin();
+                pk2[ii]=htdc[ii]->Integral(max_bin2-6,max_bin2+6);
+                htdc[ii]->GetXaxis()->SetRangeUser(1700,2000);
+	   }
+          Double_t ratio=1.0*pk2[ii]/(1.0*pk1[ii]);
+	  cout<<ii<<"  "<<ratio<<endl;
+	  myfile<<ii<<"  "<<ratio<<endl;
+      }
+     cout<<"-----------PMT 5 main fired"<<endl;
+     myfile<<"-----------PMT 5 main fired"<<endl;
+
+     TCanvas *c2 = new TCanvas("c2");
+     c2->Divide(5,2);
+     for(int ii=0;ii<10;ii++){
+	 c2->cd(ii+1);
+         htdc_near[ii] = new TH1F(Form("htdc_near%d",ii),Form("cer.t[%d](cer.a_c[5]>1100)",ii),300,1700,2000);
+         T->Draw(Form("R.cer.t[%d]>>htdc_near%d",ii,ii),TRK+trigger2+Ep+Acer5);
+         
+         max_bin1 = htdc_near[ii]->GetMaximumBin();
+         pk1_c[ii]=htdc_near[ii]->Integral(max_bin1-10,max_bin1+10);
+
+         Int_t aa1=0,min_bin=0;
+         Int_t Amin = htdc_near[ii]->GetBinContent(max_bin1);
+         for(int jj=1;jj<max_bin1;jj++){
+             aa1 = htdc_near[ii]->GetBinContent(max_bin1-jj);
+             if(aa1<Amin)
+              {
+                min_bin = max_bin1-jj;
+                Amin = aa1;
+              }
+             else break;
+          }
+	 //cout<<ii<<"  "<<min_bin<<endl;
+         binx_min = htdc[ii]->GetXaxis()->FindBin(1860);
+         if(min_bin<binx_min){
+            cout<<"PMT "<<ii<<" doesn't have second TDC peak when PMT 5 fired"<<endl;
+            continue;
+         }
+         else{
+                htdc_near[ii]->GetXaxis()->SetRange(binx_min,min_bin);
+                max_bin2 = htdc_near[ii]->GetMaximumBin();
+                pk2_c[ii]=htdc_near[ii]->Integral(max_bin2-6,max_bin2+6);
+                htdc_near[ii]->GetXaxis()->SetRangeUser(1700,2000);
+           }
+          Double_t ratio=1.0*pk2_c[ii]/(1.0*pk1_c[ii]);
+          cout<<ii<<"  "<<ratio<<endl;
+          myfile<<ii<<"  "<<ratio<<endl;
+      }
+
+     f1->Write(); 
+
+
+}

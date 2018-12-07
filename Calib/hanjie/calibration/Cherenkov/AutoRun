@@ -1,0 +1,11 @@
+#!/bin/bash
+#script to run trk_percentage automatically
+
+for((runnumber=2826;runnumber<3189;runnumber++))
+do
+   root -l 'LcerPMT3.C('$runnumber')'
+done
+
+
+
+
