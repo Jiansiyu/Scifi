@@ -3,7 +3,7 @@
   
   Toshiyuki Gogami, November 27, 2017
 */
-void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150, Int_t fibre = 1, Double_t peak_time = 50){
+void pshape_allch_histo_new(Int_t runnum=-1, Int_t Hallflag = 0,Int_t cflag = 0, Double_t cut = 1000, Int_t fibre = 1, Double_t peak_time = 70.0){ 
 
 
   if ( runnum == -1 ){
@@ -13,7 +13,6 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
     std::cout << ".x pshape_allch_histo(#run, #cflag = 0, #cut(def=150), #Int_t fibre = 0 (1-64), #peak_time(def=530))" << std::endl;
     std::cout << "Do you want description of macro? (y/n)" << std::endl;
     std::cin >> answer;
-
     
     while(true){
       
@@ -45,7 +44,7 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   
   const int nch = 64;
   //const int n   = 74;
-  const int n   = 24;
+  const int n   = 35;
   //const int n   = 400;
 
   int evID;
@@ -58,14 +57,24 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   // ========================== //
   // ==== Open ROOT file ====== //
   // ========================== //
-  char inputfilename[500];
-  sprintf(inputfilename,"./rootfiles2/acsis_%d.root",run);
-  TFile* f1 = new TFile(inputfilename);
+  char ifilename[500];
+
+
+  if( Hallflag == 0){
+    sprintf(ifilename,"./raw_test_Rootfiles/acsis_%d.root",run);
+  }
+  if (Hallflag == 1){
+    sprintf(ifilename,"./rootfiles2/acsis_%d.root",run);
+  }
+
+  TFile* f1 = new TFile(ifilename);
   TTree* t1 = (TTree*)f1->Get("tree");
 
-  sprintf(inputfilename,"./rootfiles2/charge_acsis_%d_2.root",run);
-  TFile* f2 = new TFile(inputfilename);
-  TTree* t2 = (TTree*)f2->Get("tree");
+  std::cout << " acheived thsi step! " << std::endl;
+
+  // sprintf(inputfilename,"./rootfiles2/charge_acsis_%d_2.root",run);
+  // TFile* f2 = new TFile(inputfilename);
+  change_to_DAC_level.// TTree* t2 = (TTree*)f2->Get("tree");
 
 
   //  t1->SetBranchAddress("evID",  &evID);
@@ -73,8 +82,9 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   t1->SetBranchAddress("time",  &time);
   t1->SetBranchAddress("ph",    &ph);
   t1->SetBranchAddress("nscifi", &nscifi);
-  t2->SetBranchAddress("npe", &npe);
-  
+  // t2->SetBranchAddress("npe", &npe);
+
+
   // state npe threshold
   Double_t npe_th = 8.0;
 
@@ -94,7 +104,7 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   char htitle[500];
   sprintf(htitle,"Integral around %f ns",peak_time);
 
-  TH1* hint = new TH1F("hint",htitle,200,-500,2500);
+  TH1* hint = new TH1F("hint",htitle,200,-500,30000);
 
   TH1* hchan[9];
   TVirtualPad* pads[9];
@@ -104,7 +114,6 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 
   // added lines to get hitograms vs x and y 
 
-
   double phi = 1.0; // phi = 1.0 mm
   double step = 3.79;
   double center = step * (32.-1.) / 2.0; // 121.28/2 mm
@@ -113,7 +122,10 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   // ========================================== //
   // ======= Pedestal position evaluation ===== //
   // ========================================== //
+
+
   int nite = 100; // the number of events accumulated
+
   for(int i=0 ; i<nch ; i++){
     char hname[500];
     sprintf(hname,"haccum_%d",i);
@@ -127,35 +139,61 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
     func1[i]->SetParameter(0, 250.0);
     func1[i]->SetParLimits(0,100.0,420.0);
   }
+
   //TCanvas* c0 = new TCanvas("c0","c0");
   //c0->Divide(8,4);
   //c0->cd();
   //htmp = (TH1F*)haccum[0]->Clone("htmp");
-  for(int i=0 ; i<nite ; i++){
-    t1->GetEntry(i);
-    for(int j=0 ; j<nch ; j++){
-      for(int k=0 ; k<n ; k++){
-	htmp[j]->SetBinContent(k+1,ph[j][k]);
-	//htmp[j]->SetBinError(k+1,0.0);
-      }
-      haccum[j]->Add(htmp[j]);
-    }
-  }
+
+ // std::cout << " created first histograms  " << std::endl;
+ //  for(int i=0 ; i<nite ; i++){
+ //    t1->GetEntry(i);
+ //    for(int j=0 ; j<nch ; j++){
+ //      for(int k=0 ; k<n ; k++){
+ // 	htmp[j]->SetBinContent(k+1,ph[j][k]);
+ // 	//htmp[j]->SetBinError(k+1,0.0);
+ //      }
+ //      haccum[j]->Add(htmp[j]);
+ //    }
+ //  }
+ //  std::cout << " created first histograms  " << std::endl;
+ 
+
+  // for(int i=0 ; i<nch ; i++){
+  //   haccum[i]->Scale(1./nite);
+  //   char fname[500];
+  //   //sprintf(hname,"haccum_%d",i);
+  //   sprintf(fname,"func1_%d",i);
+  //   haccum[i]->Fit(fname,"Nq","",0.0,xmax);
+  //   //c0->cd(i+1);
+  //   //haccum[i]->Draw();
+  //   //func1[i]->Draw("same");
+  //   cout << i << ": " << func1[i]->GetParameter(0) << " "
+  // 	 << func1[i]->GetParError(0) << endl;;
+  // }
+  
+  // ======================================== //
+  // === alternative way to get pedestal ==== //
+  // ======================================== //
+
+  char chmapdata[500];
+  char peddata[500];
+  sprintf(chmapdata,"ped_integrals/pedestal_%d.dat",111890);
+  ifstream* dragon_ped = new ifstream(chmapdata);
+  double pedch[nch];
+  double RMSch[nch];
+  double ttemp2;
   for(int i=0 ; i<nch ; i++){
-    haccum[i]->Scale(1./nite);
-    char fname[500];
-    //sprintf(hname,"haccum_%d",i);
-    sprintf(fname,"func1_%d",i);
-    haccum[i]->Fit(fname,"Nq","",0.0,xmax);
-    //c0->cd(i+1);
-    //haccum[i]->Draw();
-    //func1[i]->Draw("same");
-    cout << i << ": " << func1[i]->GetParameter(0) << " "
-	 << func1[i]->GetParError(0) << endl;;
+    *dragon_ped >> ttemp2 >> pedch[i] >> RMSch[i];
+    pedch[i] = pedch[i]/55.0;
+    //cout << pedch[i] << endl;
+    //pedch[i] = 0.0;
   }
+  dragon_ped->close();
+  std::cout << "I read the ped dat file!" << std::endl;
 
   
-  
+   std::cout << " created first histograms  " << std::endl;
   TCanvas* c1 = new TCanvas("c1","c1");
   //c1->Divide(6,6);
   TCanvas* c2 = new TCanvas("c2","c2");
@@ -167,6 +205,9 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
   TCanvas* c5 = new TCanvas("c5","c5");
 
   TCanvas* c6 = new TCanvas("c6","c6");
+
+
+  std::cout << " created first canvases " << std::endl;
 
   // add condition for updating canvas
   bool condition = false;
@@ -209,16 +250,18 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 
   for(int i=0 ; i<ent ; i++){
     t1->GetEntry(i);
-    t2->GetEntry(i);
+    // t2->GetEntry(i);
     condition = false;
 
     
     for(int k=0 ; k<nch ; k++){
 
+      cout << " nch = << " << k << endl;
+
       char hname[500];
     	if( nscifi[k] + 1 == fibre && initialised == false){
 	  
-    	  for(Int_t n = 0; n <4; n++){
+    	  for(Int_t z = 0; z <4; z++){
 	    	 
 	    if ( nscifi[k] <= 31 && nscifi[k] >= 0 ){
 	      x_y_conv = 0;
@@ -232,14 +275,14 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 
 
     	    sprintf(hname,"hfibre_%d | %c", nscifi[k] + n - 4 - x_y_conv + 1,  x_or_y );
-    	    hchan[n] = (TH1F*)hint->Clone(hname);
-	    hchan[n]->Reset("ICESM");
-	    hchan[n]->SetTitle(hname);	    
+    	    hchan[z] = (TH1F*)hint->Clone(hname);
+	    hchan[z]->Reset("ICESM");
+	    hchan[z]->SetTitle(hname);	    
 	    	    
 	    sprintf(hname,"hfibre_%d | %c", nscifi[k] + n  + 1 - x_y_conv + 1,  x_or_y);
-   	    hchan[n+5] = (TH1F*)hint->Clone(hname);
-	    hchan[n+5]->Reset("ICESM");
-	    hchan[n+5]->SetTitle(hname);
+   	    hchan[z+5] = (TH1F*)hint->Clone(hname);
+	    hchan[z+5]->Reset("ICESM");
+	    hchan[z+5]->SetTitle(hname);
     	  }
 	  
 	  sprintf(hname,"hfibre_%d | %c", nscifi[k]  - x_y_conv + 1, x_or_y);
@@ -251,6 +294,9 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 	  initialised = true;
 
     	}
+	
+	
+	
     }
 
     for(int k=0 ; k<nch ; k++){
@@ -261,7 +307,13 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
       //    std::cout << "Channel: "<< k << ", hitfiber = nscif[k] = " <<  nscifi[k] << std::endl;
  
       for(int j=0 ; j<n ; j++){
-	h->SetBinContent(j+1,ph[k][j]-offset[k]);
+
+
+	//	h->SetBinContent(j+1,ph[k][j]-offset[k]);
+	h->SetBinContent(j+1,ph[k][j]-pedch[k]);
+
+       
+
 	//h->SetBinContent(j+1, ph[ch][j]-offset);
 	//	htmp[k]->SetBinContent(j+1, ph[k][j]-offset);
 
@@ -277,14 +329,14 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 	// }
       }
 
-      small_integral = h->Integral( (peak_time/4)-5, (peak_time/4) +5);
+      small_integral = (h->Integral( (peak_time/4)-5, (peak_time/4) +5));
 
 
       Int_t diff =  fibre - (hitfiber + 1 );
 
       // JW: line above as hitfiber goes from 0-63, 
       
-      std::cout << "diff = " << diff << std::endl;
+      //      std::cout << "diff = " << diff << std::endl;
 
       if( (diff)*(diff) < 17){
 	
@@ -292,7 +344,7 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 	hchan[4 - diff]->Fill(small_integral);
 	//	hchan[4 + diff]->Fill(100* diff);
 
- 	std::cout << "Codition passes: small int = " << small_integral << "\n" << " and 4 + diff = " << diff + 4 << std::endl;
+	// 	std::cout << "Codition passes: small int = " << small_integral << "\n" << " and 4 + diff = " << diff + 4 << std::endl;
 
 
 	//	c6_hit++;
@@ -313,17 +365,17 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 	if( small_integral > cut){
 	  condition = true;
 	  total[k]++;
-	  std::cout << "this conidtion" << std::endl;
+	  //	  std::cout << "this conidtion" << std::endl;
 	}
       }
 
       // condition based on cut on npe: number of photoelectrons
       else if(cflag != 0){
-	if(npe[k]>npe_th){
-	  condition = true;
+	// if(npe[k]>npe_th){
+	//   condition = true;
 	  
-	  total[k]++;
-	}
+	//   total[k]++;
+	// }
       }
       else{
 	std::cout << "incorrect flag, cflag must equal 0 (integral-based cut) or 1 (npe based cut) " << std::endl;
@@ -343,19 +395,19 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
 
 	  // hist_x->Fill(hitfiber*length/32.);
 	  hist_x->Fill(hitfiber*1.+1);
-	  std::cout << " x-hit " << std::endl;
+	  //	  std::cout << " x-hit " << std::endl;
 
-	  std::cout << " fill with value of hitfiber*length/32. = " << hitfiber*length/32. << std::endl;
+	  //	  std::cout << " fill with value of hitfiber*length/32. = " << hitfiber*length/32. << std::endl;
 
-	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k << ", npe = " << npe[k] << std::endl;
+	  //	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k << ", npe = " << "blah"  << std::endl;
 
 	 
 
 	}
 	if(hitfiber<64 && hitfiber>31){
-	  std::cout << " y-hit " << std::endl;
+	  //	  std::cout << " y-hit " << std::endl;
 
-	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k  << ", npe = " << npe[k] << ::endl;
+	  //	  std::cout << "hitfiber = " << hitfiber << ", length = " << length << ", nscifi[ch] " << nscifi[k] << ", Channel is  " << k  << ", npe = " << "blah" << ::endl;
 
 	  // hist_y->Fill((hitfiber-32)*(length/32));
 	  hist_y->Fill((hitfiber-32)*(1)+1);
@@ -463,13 +515,13 @@ void pshape_allch_histo_new(Int_t runnum=-1, Int_t cflag = 0, Double_t cut = 150
     if (x){
       
       if(total[k] > 100){
-	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fibre number = " <<  nscifi[k] + 1 << " and x = " << nscifi[k] + 1   << " (1-32),   (" <<  (nscifi[k])*0.15 << " inches)" << " and offset = " << offset[k] <<  "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
+	//	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fibre number = " <<  nscifi[k] + 1 << " and x = " << nscifi[k] + 1   << " (1-32),   (" <<  (nscifi[k])*0.15 << " inches)" << " and offset = " << offset[k] <<  "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
       }
       
     }
     else if (!x){
       if(total[k] > 100){
-	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fibre number = " <<  nscifi[k] + 1 << " and y = " << nscifi[k] - 32 + 1 << " (1-32),   (" <<  (nscifi[k] - 32)*0.15 << " inches)"  << " and offset = " << offset[k] << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
+	//	std::cout << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << "total hits in channel[" << k << "] are " << total[k] << " with fibre number = " <<  nscifi[k] + 1 << " and y = " << nscifi[k] - 32 + 1 << " (1-32),   (" <<  (nscifi[k] - 32)*0.15 << " inches)"  << " and offset = " << offset[k] << "\n" << " ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~" << "\n" << std::endl;
       }
       
       

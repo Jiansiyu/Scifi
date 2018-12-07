@@ -20,21 +20,21 @@
 using namespace std;
 using namespace std::chrono;
 
-void conv1_JW(int runnum = 4600, int dataflag = 0){
+void conv1_JW(int runnum = 4600, int dataflag = 0, Int_t Hallflag = 0){
   // =================================== //
   // ====== General conditions ========= //
   // =================================== //
   gROOT->SetStyle("Plain");
   gStyle->SetOptStat(0);
-  
-  high_resolution_clock::time_point ti_start = high_resolution_clock::now();
+   
+ 
   // ================================================ //
   // ====== Parameters and variable definitions ===== //
   // ================================================ //
   int flag = dataflag;
   int run = runnum;
   //const int n = 74;     // The number of data samples (250 MHz sampling = 4 ns per ch)
-  const int n = 24;     // The number of data samples (250 MHz sampling = 4 ns per ch)
+  const int n = 35;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 400;     // The number of data samples (250 MHz sampling = 4 ns per ch)
   //const int n = 25; 
   const int nch = 64;   // The number of channels (16ch * 2)
@@ -61,7 +61,6 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   cout << " _________________________________________" << endl;
 
 
-  high_resolution_clock::time_point ti1 = high_resolution_clock::now();
 
   for(int i=0 ; i<nch ; i++){
     int ttemp, ttemp2;
@@ -70,7 +69,6 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
     nscifi[i] = nscifi[i] - 1; // Subtraction by 1 because # starts from 1
   }
   ifs->close();
-  high_resolution_clock::time_point ti2 = high_resolution_clock::now();
   
   // =============================== //
   // ====== Read pedestal data ===== //
@@ -102,26 +100,66 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
 
   char inputfilename[500];
 
-  sprintf(inputfilename,"./rootfiles/fadcACSIS_%d.root",run);
+  if (Hallflag == 1){
+    sprintf(inputfilename,"./rootfiles/fadcACSIS_%d.root",run);
+  }
+  else if (Hallflag == 0){
+    sprintf(inputfilename,"./Hall_rootfiles/apex_online_%d.root",run);
+  }
+  else{
+    cout << " Must select Hallflag = 0 (data taken in Hall) or 1 (data taken in test lab) " << endl;
+
+    return 1;
+  }
+
+
+
+
+
   TFile* f1 = new TFile(inputfilename);
   TTree* t1 = (TTree*)f1->Get("T");
 
+
+
+
   for(int i=0 ; i<nch ; i++){ //JW if condition to get 00, 01, 02 etc (match with 1st root file
     char name[500];
-    if( i <10){
-    sprintf(name,"Ndata.sbs.hcal.a.raw0%d",i); // remove .2
-    }
-    else{
-    sprintf(name,"Ndata.sbs.hcal.a.raw%d",i); // remove .2
-    }
-    t1->SetBranchAddress(name,&nn[i]);   
 
-    if( i< 10){
-      sprintf(name,"sbs.hcal.a.raw0%d",i);
+    if( Hallflag == 1){
+      if( i <10){
+	sprintf(name,"Ndata.sbs.hcal.a.raw0%d",i); // remove .2
+      }
+      else{
+	sprintf(name,"Ndata.sbs.hcal.a.raw%d",i); // remove .2
+      }
+      t1->SetBranchAddress(name,&nn[i]);   
+      
+      if( i< 10){
+	sprintf(name,"sbs.hcal.a.raw0%d",i);
+      }
+      else{
+	sprintf(name,"sbs.hcal.a.raw%d",i);
+      }
     }
-    else{
-      sprintf(name,"sbs.hcal.a.raw%d",i);
-    }
+    
+    else if( Hallflag == 0){
+      if( i <10){
+	sprintf(name,"Ndata.R.sf.a_raw0%d",i); // remove .2
+      }
+     else{
+       sprintf(name,"Ndata.R.sf.a_raw%d",i); // remove .2
+     }
+      t1->SetBranchAddress(name,&nn[i]);   
+      
+      if( i< 10){
+	sprintf(name,"R.sf.a_raw0%d",i);
+      }
+      else{
+	sprintf(name,"R.sf.a_raw%d",i);
+      }
+    } 
+    
+
     t1->SetBranchAddress(name,&ph[i]);
 
     char hname[500];
@@ -137,14 +175,26 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   // ================================== //
   char outputfilename[500];
   char tempc[500];
-  if(flag==0){
-    // JW: added JW to start of root file name 
-    sprintf(outputfilename,"./rootfiles2/acsis_%d.root",run);
+
+  if (Hallflag == 1){
+    if(flag==0){
+      // JW: added JW to start of root file name 
+      sprintf(outputfilename,"./rootfiles2/acsis_%d.root",run);
+    }
+    else {
+      // JW: added JW to start of root file name 
+      sprintf(outputfilename,"./rootfiles2/charge_acsis_%d.root",run);
+    }
   }
-  else {
-    // JW: added JW to start of root file name 
-    sprintf(outputfilename,"./rootfiles2/charge_acsis_%d.root",run);
+  else if (Hallflag == 0){
+    sprintf(outputfilename,"./raw_test_Rootfiles/acsis_%d.root",run);
   }
+
+
+
+
+
+
   TFile* fnew = new TFile(outputfilename,"recreate");
   TTree* tnew = new TTree("tree","APEX SciFi test at EEL122 in 2018");
   tnew->Branch("runID",  &run,  "runID/I");
@@ -196,22 +246,6 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   double ent = t1->GetEntries();
   //  std::cout << "Just after getting entries " << std::endl;
 
-  high_resolution_clock::time_point ti_calc1 = high_resolution_clock::now();
-
-  high_resolution_clock::time_point ti_GE1;
-  high_resolution_clock::time_point ti_GE2;
-
-  high_resolution_clock::time_point ti_Weight1;
-  high_resolution_clock::time_point ti_Weight2;
-
-  high_resolution_clock::time_point ti_Int1;
-  high_resolution_clock::time_point ti_Int2;
-
-  high_resolution_clock::time_point ti_calc_ch_1;
-  high_resolution_clock::time_point ti_calc_ch_2;
-
-  high_resolution_clock::time_point ti_filling_1;     
-  high_resolution_clock::time_point ti_filling_2;      
 
 
   for(int i=0 ; i<ent ; i++){
@@ -237,18 +271,14 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
     
     //    std::cout << "just before getting individual entry " << std::endl;
     
-    ti_GE1 = high_resolution_clock::now();
     t1->GetEntry(i);
-    ti_GE2 = high_resolution_clock::now();
 
     //    std::cout << "just after getting indiv entry !!! "<< std::endl;
 
     for(int j=0 ; j<nch ; j++){
 
-      ti_calc_ch_1 = high_resolution_clock::now();      
       
       // -------- Exception handling for cable length test ------ //
-      ti_filling_1 = high_resolution_clock::now();      
       
       if(diffch1>-1 && diffch2>-1){
 	if(j==diffch1 || j==diffch2){ 
@@ -282,14 +312,12 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
       }
       
 
-      ti_filling_2 = high_resolution_clock::now();      
 
       // ---- Weighted time calculation  ----- //
       double temp100=0.0, temp200=0.0;
       int tempbin = 0;
       double tempn   = 0;
 
-      ti_Weight1 = high_resolution_clock::now();
 
       for(int k=0 ; k<nbin_wtime ; k++){
 	tempbin = k - nbin_wtime/2 + ph_max_bin;
@@ -302,17 +330,14 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
       }
       wtime[j] = temp100/temp200*4.0; // weighted time (ns)
       
-      ti_Weight2 = high_resolution_clock::now();
       // ----- Integrated charge ------- //
 
-      ti_Int1 = high_resolution_clock::now();
 
       intc[j] = (hph[j]->Integral(intrange_min,intrange_max))-pedch[j];
       intc_raw[j] = (hph[j]->Integral(intrange_min,intrange_max));
       hph[j]->Clear(); // reset 
-      ti_Int2 = high_resolution_clock::now();
+
       
-      ti_calc_ch_2 = high_resolution_clock::now();      
     }
     //    std::cout <<"just before filling new tree!" << std::endl;
     tnew->Fill();
@@ -320,7 +345,7 @@ void conv1_JW(int runnum = 4600, int dataflag = 0){
   }
 
 
-  high_resolution_clock::time_point ti_calc2 = high_resolution_clock::now();
+
 
   // ---- Write data and close the new ROOT file ---- //
 
