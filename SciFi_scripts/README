@@ -1,0 +1,41 @@
+Directory contains list of scripts to analyze and calibrate SciFi.
+
+	
+
+channel_distrib.cc:
+	
+	prints channel and pedestal distributions with cut around 32-64 ns
+
+
+channel_distrib_and_fit.cc:
+
+	calcuates and fits pedestals of all channels (32-64ns)
+
+
+mapping.cc:
+
+	temporary idea for mapping from output fo SciFi to actuals fibres
+
+
+ped_comparison_channels.cc:
+
+	compares pedestals between channels for chosen run (pedestal as over whole run)
+
+
+position_evalutation.cc:
+
+	gives plots of x and y coordinates of hits over a run
+
+
+pshape_singlech.cc:
+
+	event_by_event script
+
+
+
+
+
+
+
+
+
